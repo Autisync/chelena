@@ -27,11 +27,15 @@ across loop resumes/context compaction — read it first on every wake-up before
       route `app/api/admin/products/[id]/images/route.ts` (admin-session-verified, processes
       in-memory — originals are never persisted, satisfying "never serve originals" trivially)
       + PATCH/DELETE at `.../images/[imageId]/route.ts` (toggle primary/advertisable, delete +
-      storage cleanup). `components/admin/image-uploader.tsx` wired into the edit-product page.
-      **Not yet done**: cropper UI (react-easy-crop is installed but not wired — uploads use the
-      original aspect ratio, no 1:1/16:9 crop presets yet), category picker in the product form
-      (schema supports `categoryId` but the form has no select yet), pickup points CRUD, banners
-      manager, reviews moderation, settings page, dashboard widgets.
+      storage cleanup). `components/admin/image-uploader.tsx` wired into the edit-product page,
+      now with `components/admin/image-crop-dialog.tsx` (react-easy-crop, 1:1/16:9 presets) —
+      crop rect posted to the upload route and passed through to `processProductImage`'s `crop`
+      option. Category picker added (native `<select>`, not shadcn's Select — see
+      docs/DECISIONS.md for why). Pickup points CRUD done: `app/admin/pickup-points/` (list +
+      inline edit-in-place rows + create form + delete, zod-validated actions).
+      **Not yet done**: "advertisable" flag surfaces in image-uploader but nothing consumes it
+      yet (banners manager), reviews moderation, settings page (payment templates/WhatsApp
+      number/Google place id — seeded placeholder rows exist), dashboard widgets.
 - [ ] **Milestone 2 — Storefront** — home page is a placeholder hero only; needs category tiles,
       featured/promo sections, listing+filters, PDP, country switcher, cart, SEO plumbing.
       **Run design-consultation (ui-ux-pro-max or impeccable skill) before this milestone** per
@@ -47,18 +51,27 @@ across loop resumes/context compaction — read it first on every wake-up before
 
 ## Immediate next steps (pick up here)
 
-1. Cropper: wire react-easy-crop into the image uploader with 1:1 (product) / 16:9 (banner)
-   aspect presets, passing the resulting crop rect into `processProductImage`'s `crop` option
-   (already supported by the function, just not called with one yet).
-2. Category picker in the product form (categories are seeded, just needs a `<select>`).
-3. Pickup points CRUD + settings page (payment templates, WhatsApp number, Google place id —
-   these already have placeholder rows in `supabase/seed.sql`).
-4. Docker is NOT available in this environment — `supabase start`/`db push`/`db seed` have not
+1. Settings page: `app/admin/settings/page.tsx` — edit the `settings` key/value rows seeded in
+   `supabase/seed.sql` (`whatsapp_numbers`, `payment_templates`, `google_place_id`). Simple
+   JSON-in-a-textarea editor is fine for v1; validate with zod before writing.
+2. Banners manager: CRUD at `app/admin/banners/` per PRD (image must be `is_advertisable`,
+   placement enum `home_hero|home_strip|category_top`, country nullable = both, schedule).
+   `is_advertisable` toggle already exists on `product_images` (Milestone 1 image work) — the
+   banner form should query `product_images where is_advertisable = true` for the picker.
+3. Reviews moderation page (`app/admin/reviews/`) — table exists, no UI yet. Low priority until
+   Milestone 3/5 produce actual completed orders to review.
+4. Dashboard widgets (`app/admin/page.tsx` is still a placeholder paragraph) — orders by status,
+   revenue by country, low-stock alerts, top products. Depends on Milestone 3 (orders) to be
+   meaningful; fine to defer until then.
+5. Docker is NOT available in this environment — `supabase start`/`db push`/`db seed` have not
    been run against a live instance. All SQL has been carefully hand-reviewed but is unverified;
    verify in a real environment (or once Docker becomes available) before relying on it.
-5. Run design-consultation before building real storefront UI (Milestone 2 requirement above) —
+6. Run design-consultation before building real storefront UI (Milestone 2 requirement above) —
    still not done, current UI is shadcn defaults + ad hoc Tailwind, no defined design system yet.
-6. Then proceed Milestone 1 (finish) → 2 → ... in order per the implementation plan.
+   **This should happen next** — Milestone 1's remaining items (settings/banners/reviews/
+   dashboard) are all low-risk CRUD following the same pattern as products/pickup-points, so it's
+   reasonable to jump to the design consultation now and finish those M1 leftovers afterward,
+   applying the new tokens as they're built rather than building them twice.
 
 ## Test status
 

@@ -22,12 +22,15 @@ type ProductFormValues = {
   brand: string | null;
   descriptionPt: string | null;
   descriptionEn: string | null;
+  categoryId: string | null;
   tags: string[];
   seoTitle: string | null;
   seoDescription: string | null;
   isActive: boolean;
   countries: Partial<Record<"AO" | "PT", CountryPricing>>;
 };
+
+type Category = { id: string; name_pt: string };
 
 const DEFAULT_PRICING: Record<"AO" | "PT", CountryPricing> = {
   AO: { currency: "AOA", price: 0, compareAtPrice: null, stock: 0, isVisible: true },
@@ -38,10 +41,12 @@ export function ProductForm({
   action,
   defaultValues,
   submitLabel,
+  categories,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   defaultValues?: Partial<ProductFormValues>;
   submitLabel: string;
+  categories: Category[];
 }) {
   const [enabledCountries, setEnabledCountries] = useState<Record<"AO" | "PT", boolean>>({
     AO: !!defaultValues?.countries?.AO,
@@ -61,9 +66,27 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="brand">Marca</Label>
-        <Input id="brand" name="brand" defaultValue={defaultValues?.brand ?? ""} />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="brand">Marca</Label>
+          <Input id="brand" name="brand" defaultValue={defaultValues?.brand ?? ""} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="categoryId">Categoria</Label>
+          <select
+            id="categoryId"
+            name="categoryId"
+            defaultValue={defaultValues?.categoryId ?? ""}
+            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <option value="">Sem categoria</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name_pt}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

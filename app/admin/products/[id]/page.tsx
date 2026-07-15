@@ -8,11 +8,10 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*, product_country(*), product_images(*)")
-    .eq("id", id)
-    .single();
+  const [{ data: product }, { data: categories }] = await Promise.all([
+    supabase.from("products").select("*, product_country(*), product_images(*)").eq("id", id).single(),
+    supabase.from("categories").select("id, name_pt").order("sort_order"),
+  ]);
 
   if (!product) notFound();
 
@@ -33,12 +32,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <ProductForm
         action={updateProduct.bind(null, id)}
         submitLabel="Guardar alterações"
+        categories={categories ?? []}
         defaultValues={{
           slug: product.slug,
           name: product.name,
           brand: product.brand,
           descriptionPt: product.description_pt,
           descriptionEn: product.description_en,
+          categoryId: product.category_id,
           tags: product.tags ?? [],
           seoTitle: product.seo_title,
           seoDescription: product.seo_description,

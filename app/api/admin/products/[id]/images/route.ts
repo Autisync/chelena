@@ -13,6 +13,13 @@ const metaSchema = z.object({
   isAdvertisable: z.coerce.boolean().optional().default(false),
 });
 
+const cropSchema = z.object({
+  left: z.number().int().min(0),
+  top: z.number().int().min(0),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
+
 // Upload -> sharp pipeline -> Storage. Admin-only: verified against the
 // caller's session (not just presence of a service-role key on the server),
 // per hard rule #3's "re-verify the session" defense in depth.
@@ -45,8 +52,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     isAdvertisable: formData.get("isAdvertisable") ?? undefined,
   });
 
+  const cropRaw = formData.get("crop");
+  const crop = cropRaw
+    ? cropSchema.parse(JSON.parse(String(cropRaw)))
+    : undefined;
+
   const inputBuffer = Buffer.from(await file.arrayBuffer());
-  const variants = await processProductImage(inputBuffer);
+  const variants = await processProductImage(inputBuffer, { crop });
 
   const admin = createAdminClient();
   const imageId = crypto.randomUUID();

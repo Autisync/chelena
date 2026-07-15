@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { productImageUrl } from "@/lib/images/url";
+import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 
 type ProductImage = {
   id: string;
@@ -13,36 +14,43 @@ type ProductImage = {
   is_advertisable: boolean;
 };
 
+type Crop = { left: number; top: number; width: number; height: number };
+
 export function ImageUploader({ productId, images }: { productId: string; images: ProductImage[] }) {
+  const [queue, setQueue] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  async function handleFiles(files: FileList | null) {
+  function enqueueFiles(files: FileList | null) {
     if (!files?.length) return;
+    setQueue((prev) => [...prev, ...Array.from(files)]);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function uploadOne(file: File, crop: Crop) {
     setUploading(true);
     setError(null);
     try {
-      for (const file of Array.from(files)) {
-        const formData = new FormData();
-        formData.set("file", file);
-        formData.set("isPrimary", String(images.length === 0));
-        const res = await fetch(`/api/admin/products/${productId}/images`, {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error ?? `upload failed (${res.status})`);
-        }
+      const formData = new FormData();
+      formData.set("file", file);
+      formData.set("isPrimary", String(images.length === 0));
+      formData.set("crop", JSON.stringify(crop));
+      const res = await fetch(`/api/admin/products/${productId}/images`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `upload failed (${res.status})`);
       }
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "upload failed");
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+      setQueue((prev) => prev.slice(1));
     }
   }
 
@@ -60,8 +68,18 @@ export function ImageUploader({ productId, images }: { productId: string; images
     router.refresh();
   }
 
+  const currentFile = queue[0];
+
   return (
     <div className="flex flex-col gap-4">
+      {currentFile && (
+        <ImageCropDialog
+          file={currentFile}
+          onCancel={() => setQueue((prev) => prev.slice(1))}
+          onConfirm={(crop) => uploadOne(currentFile, crop)}
+        />
+      )}
+
       <div className="grid grid-cols-4 gap-3">
         {images.map((image) => (
           <div key={image.id} className="flex flex-col gap-1.5 rounded-md border p-2">
@@ -100,8 +118,8 @@ export function ImageUploader({ productId, images }: { productId: string; images
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
-          disabled={uploading}
-          onChange={(e) => handleFiles(e.target.files)}
+          disabled={uploading || !!currentFile}
+          onChange={(e) => enqueueFiles(e.target.files)}
         />
         {uploading && <p className="mt-1 text-xs text-muted-foreground">A processar imagem…</p>}
         {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
