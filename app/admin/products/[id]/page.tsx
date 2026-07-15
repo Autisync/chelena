@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProductForm } from "@/app/admin/products/product-form";
 import { updateProduct } from "@/app/admin/products/actions";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -9,7 +10,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   const { data: product } = await supabase
     .from("products")
-    .select("*, product_country(*)")
+    .select("*, product_country(*), product_images(*)")
     .eq("id", id)
     .single();
 
@@ -45,6 +46,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           countries: countries as never,
         }}
       />
+
+      <div className="mt-10 max-w-2xl">
+        <h2 className="mb-3 text-lg font-semibold">Imagens</h2>
+        <ImageUploader productId={product.id} images={product.product_images ?? []} />
+      </div>
     </main>
   );
 }

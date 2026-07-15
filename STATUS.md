@@ -20,12 +20,18 @@ across loop resumes/context compaction — read it first on every wake-up before
       (`components/admin/admin-nav.tsx`), product list/create/edit pages with per-country
       (AO/PT) price/stock/visibility tabs (`app/admin/products/**`), zod-validated server
       actions (`app/admin/products/actions.ts`, `lib/validation/product.ts`) using the admin's
-      own RLS-scoped session (not service role — see actions.ts comment).
-      **Not yet done**: image upload route + sharp pipeline (thumb/card/detail/banner, WebP,
-      ≤200KB detail, EXIF strip), cropper, "advertisable" flag UI, category picker in the
-      product form (schema supports `categoryId` but the form has no select yet — categories
-      table is seeded but nothing queries it in the UI), pickup points CRUD, banners manager,
-      reviews moderation, settings page, dashboard widgets.
+      own RLS-scoped session (not service role — see actions.ts comment). Image pipeline done:
+      `lib/images/process.ts` (sharp: thumb/card/detail/banner WebP variants, EXIF strip via
+      `.rotate()` + no `.withMetadata()`, detail ≤200KB via quality step-down, no-upscale),
+      unit-tested in `test/unit/image-pipeline.test.ts` (4 tests passing, `npm test`). Upload
+      route `app/api/admin/products/[id]/images/route.ts` (admin-session-verified, processes
+      in-memory — originals are never persisted, satisfying "never serve originals" trivially)
+      + PATCH/DELETE at `.../images/[imageId]/route.ts` (toggle primary/advertisable, delete +
+      storage cleanup). `components/admin/image-uploader.tsx` wired into the edit-product page.
+      **Not yet done**: cropper UI (react-easy-crop is installed but not wired — uploads use the
+      original aspect ratio, no 1:1/16:9 crop presets yet), category picker in the product form
+      (schema supports `categoryId` but the form has no select yet), pickup points CRUD, banners
+      manager, reviews moderation, settings page, dashboard widgets.
 - [ ] **Milestone 2 — Storefront** — home page is a placeholder hero only; needs category tiles,
       featured/promo sections, listing+filters, PDP, country switcher, cart, SEO plumbing.
       **Run design-consultation (ui-ux-pro-max or impeccable skill) before this milestone** per
@@ -41,11 +47,9 @@ across loop resumes/context compaction — read it first on every wake-up before
 
 ## Immediate next steps (pick up here)
 
-1. Image upload route (`app/api/admin/images/process/route.ts` or similar): sharp pipeline
-   producing thumb(200)/card(600)/detail(1200)/banner(1600) WebP variants, EXIF strip,
-   ≤200KB detail via quality step-down, upload to `product-images` bucket via service role
-   (originals must NOT be public — see docs/DECISIONS.md), insert `product_images` row.
-   Then wire an uploader + cropper (react-easy-crop, already installed) into the product form.
+1. Cropper: wire react-easy-crop into the image uploader with 1:1 (product) / 16:9 (banner)
+   aspect presets, passing the resulting crop rect into `processProductImage`'s `crop` option
+   (already supported by the function, just not called with one yet).
 2. Category picker in the product form (categories are seeded, just needs a `<select>`).
 3. Pickup points CRUD + settings page (payment templates, WhatsApp number, Google place id —
    these already have placeholder rows in `supabase/seed.sql`).
@@ -55,6 +59,13 @@ across loop resumes/context compaction — read it first on every wake-up before
 5. Run design-consultation before building real storefront UI (Milestone 2 requirement above) —
    still not done, current UI is shadcn defaults + ad hoc Tailwind, no defined design system yet.
 6. Then proceed Milestone 1 (finish) → 2 → ... in order per the implementation plan.
+
+## Test status
+
+`npm test` (vitest): 4/4 passing, all in `test/unit/image-pipeline.test.ts`. No Playwright
+config yet (Milestone 6 exit test needs it) — `@playwright/test` is not installed.
+`create_order`'s correctness can't be unit-tested without a live Postgres (it's a SQL function);
+covering it needs either a Supabase-in-CI setup or Playwright hitting a real local instance.
 
 ## Known follow-ups / risks
 
