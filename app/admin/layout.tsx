@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { geistSans, geistMono } from "@/lib/fonts";
 import { createClient } from "@/lib/supabase/server";
+import { AdminNav } from "@/components/admin/admin-nav";
 import "../globals.css";
 
 export const metadata: Metadata = { title: { default: "Admin | Chelena", template: "%s | Chelena Admin" } };
@@ -27,7 +28,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <html lang="pt" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-muted/30">{children}</body>
+      <body className="min-h-full flex bg-muted/30">
+        <AdminNav />
+        <div className="flex-1 overflow-auto">{children}</div>
+      </body>
     </html>
   );
 }

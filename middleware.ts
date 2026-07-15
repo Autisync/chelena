@@ -1,7 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import { COUNTRY_COOKIE, isCountry, suggestCountryFromHeader } from "@/lib/country";
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 
 const intlMiddleware = createMiddleware(routing);
 
