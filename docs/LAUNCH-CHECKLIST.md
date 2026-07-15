@@ -23,8 +23,12 @@ switches that flip at launch. Nothing here blocks development — the app runs f
       in-memory rate limiting is dev-only, not safe for multi-instance production).
 - [ ] Real pickup points entered (seed data is placeholder).
 - [ ] Real payment instruction templates entered in Settings (AO + PT).
-- [ ] First admin user created (see README "Create the first admin").
-- [ ] Supabase prod project migrated (`supabase db push`) and seeded.
+- [ ] First admin user created (see README "Create the first admin") — needs a real signup
+      (email OTP or Google) then promoting the resulting `profiles` row; not done yet as of
+      2026-07-16 (see STATUS.md).
+- [x] Supabase project migrated (`supabase db push`) and seeded — done 2026-07-16 against the
+      linked project (`hwlpdoowbbhxkqpvcrch`); confirm this is the intended production project
+      before relying on it, and re-run against the actual prod project if not.
 - [ ] Custom domain attached in Vercel; `NEXT_PUBLIC_SITE_URL` updated.
 - [ ] Lighthouse mobile on the PDP: SEO ≥ 95, Performance ≥ 85 (re-check on prod domain).
 - [ ] Google Search Console: submit sitemap, verify Rich Results for a live product.

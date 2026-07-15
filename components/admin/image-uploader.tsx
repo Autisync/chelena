@@ -10,8 +10,8 @@ type ProductImage = {
   id: string;
   storage_path_card: string;
   alt_text: string | null;
-  is_primary: boolean;
-  is_advertisable: boolean;
+  is_primary: boolean | null;
+  is_advertisable: boolean | null;
 };
 
 type Crop = { left: number; top: number; width: number; height: number };
@@ -92,7 +92,7 @@ export function ImageUploader({ productId, images }: { productId: string; images
             <label className="flex items-center gap-1.5 text-xs">
               <input
                 type="checkbox"
-                checked={image.is_primary}
+                checked={image.is_primary ?? false}
                 onChange={(e) => toggle(image.id, "isPrimary", e.target.checked)}
               />
               Principal
@@ -100,7 +100,7 @@ export function ImageUploader({ productId, images }: { productId: string; images
             <label className="flex items-center gap-1.5 text-xs">
               <input
                 type="checkbox"
-                checked={image.is_advertisable}
+                checked={image.is_advertisable ?? false}
                 onChange={(e) => toggle(image.id, "isAdvertisable", e.target.checked)}
               />
               Publicitável (banners)

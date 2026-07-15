@@ -13,7 +13,7 @@ type PickupPoint = {
   city: string;
   hours: string | null;
   maps_url: string | null;
-  is_active: boolean;
+  is_active: boolean | null;
 };
 
 export function PickupPointRow({ point }: { point: PickupPoint }) {
@@ -31,7 +31,7 @@ export function PickupPointRow({ point }: { point: PickupPoint }) {
       <Input name="address" defaultValue={point.address} required />
       <Input name="hours" defaultValue={point.hours ?? ""} placeholder="Seg-Sáb 9h-18h" />
       <label className="flex items-center gap-1.5 text-xs whitespace-nowrap">
-        <Checkbox name="isActive" defaultChecked={point.is_active} />
+        <Checkbox name="isActive" defaultChecked={point.is_active ?? true} />
         Ativo
       </label>
       <div className="flex gap-1.5">

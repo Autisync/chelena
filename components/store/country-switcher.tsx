@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { COUNTRY_COOKIE, isCountry, type Country } from "@/lib/country";
+import { useCart } from "@/lib/cart/use-cart";
 
 function readCountryCookie(): Country {
   const match = document.cookie.match(new RegExp(`(?:^|; )${COUNTRY_COOKIE}=([^;]+)`));
@@ -30,15 +31,26 @@ function writeCountryCookie(country: Country) {
 // static/SSG storefront pages stay cacheable; only this small widget is
 // interactive. useSyncExternalStore (rather than useState+useEffect) is the
 // React-sanctioned way to read external mutable state like a cookie without
-// a hydration-mismatch flash. Cart-lock-to-country + confirm-on-switch (PRD)
-// lands once the cart exists (Milestone 2 cart work).
+// a hydration-mismatch flash.
 export function CountrySwitcher() {
   const router = useRouter();
   const t = useTranslations("Country");
   const current = useSyncExternalStore(subscribe, readCountryCookie, () => "PT" as Country);
+  const { items, country: cartCountry, clearCart } = useCart();
 
   function setCountry(country: Country) {
     if (country === current) return;
+    // Cart is locked to one country (PRD) — switching to a country that
+    // doesn't match the cart's items clears it, with a confirmation first.
+    if (cartCountry && cartCountry !== country && items.length) {
+      const confirmed = window.confirm(
+        country === "AO"
+          ? "Mudar para Angola vai esvaziar o carrinho (tem produtos de Portugal). Continuar?"
+          : "Mudar para Portugal vai esvaziar o carrinho (tem produtos de Angola). Continuar?"
+      );
+      if (!confirmed) return;
+      clearCart();
+    }
     writeCountryCookie(country);
     router.refresh();
   }

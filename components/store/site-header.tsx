@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { CountrySwitcher } from "@/components/store/country-switcher";
+import { CartBadge } from "@/components/store/cart-badge";
 
 // Stays a server component for the static nav labels (keeps the page
 // cacheable under ISR); the country-aware bit is isolated to the
@@ -21,9 +22,7 @@ export async function SiteHeader({ locale }: { locale: string }) {
           <Link href={`/${locale}/orders/track`} className="text-muted-foreground hover:text-foreground">
             {t("trackOrder")}
           </Link>
-          <Link href={`/${locale}/cart`} className="text-muted-foreground hover:text-foreground">
-            {t("cart")}
-          </Link>
+          <CartBadge locale={locale} />
           <Link href={`/${locale}/account/login`} className="text-muted-foreground hover:text-foreground">
             {t("account")}
           </Link>

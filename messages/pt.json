@@ -28,6 +28,13 @@
     "sortPriceDesc": "Preço: mais alto",
     "inStockOnly": "Só em stock"
   },
+  "Cart": {
+    "title": "Carrinho",
+    "empty": "O seu carrinho está vazio.",
+    "subtotal": "Subtotal",
+    "checkout": "Finalizar compra",
+    "remove": "Remover"
+  },
   "PDP": {
     "outOfStock": "Esgotado",
     "inStock": "Em stock",

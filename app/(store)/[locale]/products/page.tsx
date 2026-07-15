@@ -47,7 +47,7 @@ export default async function ProductsPage({
   let rows = (products ?? []).map((p) => {
     const pc = p.product_country?.[0];
     const images = [...(p.product_images ?? [])].sort(
-      (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || a.sort_order - b.sort_order
+      (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
     );
     return {
       slug: p.slug,

@@ -2,6 +2,28 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## Secrets hygiene: real Supabase credentials moved out of `.env.example`
+
+Mid-session, real credentials for a live Supabase project appeared written into `.env.example`
+on disk. `.env.example` is meant to be a template (empty values, safe to have tracked/shared) —
+even though this repo's `.gitignore` has a blanket `.env*` pattern that happens to keep it out of
+git too, leaving real secrets in a file named "example" is bad hygiene (easy to `git add -f` by
+habit, easy to paste into a doc, easy for a future contributor to assume it's safe to view). Moved
+the real values to `.env.local` (the correct, conventionally-gitignored location for real local
+secrets) and restored `.env.example` to empty placeholders. Used the CLI's already-authenticated
+session (not the leaked keys) to link the project and push migrations — see STATUS.md "MAJOR
+UPDATE" for what that unblocked.
+
+## Did not fabricate an `auth.users` row via direct SQL
+
+With a live database available, creating a test admin user by inserting directly into
+`auth.users` was tempting (would unblock testing the admin role guard immediately). Didn't do
+it: Supabase Auth (GoTrue) owns that table's invariants — password hashing, confirmation
+tokens, instance_id, provider metadata — and a hand-crafted row that doesn't match what GoTrue
+expects can leave the auth system in a broken state that's hard to diagnose later. A real
+signup (email OTP or Google) is one manual step for whoever has access to a real inbox; not
+worth the risk to save it. See README "Create the first admin".
+
 ## Bypassed the interactive `/design-consultation` gstack skill flow
 
 The user's instruction was to "run a design consultation (ui-ux-pro-max or impeccable

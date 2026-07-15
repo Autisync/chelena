@@ -28,6 +28,13 @@
     "sortPriceDesc": "Price: high to low",
     "inStockOnly": "In stock only"
   },
+  "Cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "remove": "Remove"
+  },
   "PDP": {
     "outOfStock": "Out of stock",
     "inStock": "In stock",

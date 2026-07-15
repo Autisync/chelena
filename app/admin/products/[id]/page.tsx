@@ -43,7 +43,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           tags: product.tags ?? [],
           seoTitle: product.seo_title,
           seoDescription: product.seo_description,
-          isActive: product.is_active,
+          isActive: product.is_active ?? true,
           countries: countries as never,
         }}
       />

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { COUNTRY_COOKIE, isCountry } from "@/lib/country";
 import { productImageUrl } from "@/lib/images/url";
 import { formatMoney } from "@/lib/currency";
+import { AddToCartButton } from "@/components/store/add-to-cart-button";
 
 // PDP is per-country (price/stock) so it can't be fully static, but the
 // product content itself changes rarely — ISR keeps rebuilds cheap while
@@ -63,7 +64,7 @@ export default async function ProductDetailPage({
 
   const pc = product.product_country[0];
   const images = [...(product.product_images ?? [])].sort(
-    (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || a.sort_order - b.sort_order
+    (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
   );
   const inStock = pc.stock > 0;
   const description = locale === "en" ? product.description_en : product.description_pt;
@@ -157,6 +158,16 @@ export default async function ProductDetailPage({
           >
             {inStock ? t("inStock") : t("outOfStock")}
           </span>
+          <AddToCartButton
+            productId={product.id}
+            slug={product.slug}
+            name={product.name}
+            price={pc.price}
+            currency={pc.currency}
+            imagePath={images[0]?.storage_path_card ?? null}
+            stock={pc.stock}
+            country={country}
+          />
           {description && (
             <div>
               <h2 className="mb-1 text-sm font-medium">{t("descriptionTitle")}</h2>
@@ -173,7 +184,7 @@ export default async function ProductDetailPage({
             {related.map((r) => {
               const rpc = r.product_country?.[0];
               const rImage = [...(r.product_images ?? [])].sort(
-                (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || a.sort_order - b.sort_order
+                (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
               )[0];
               return (
                 <a key={r.slug} href={`/${locale}/products/${r.slug}`} className="flex flex-col gap-1.5">
