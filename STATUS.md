@@ -66,27 +66,31 @@ across loop resumes/context compaction — read it first on every wake-up before
 
 ## Immediate next steps (pick up here)
 
-1. Settings page: `app/admin/settings/page.tsx` — edit the `settings` key/value rows seeded in
-   `supabase/seed.sql` (`whatsapp_numbers`, `payment_templates`, `google_place_id`). Simple
-   JSON-in-a-textarea editor is fine for v1; validate with zod before writing.
-2. Banners manager: CRUD at `app/admin/banners/` per PRD (image must be `is_advertisable`,
-   placement enum `home_hero|home_strip|category_top`, country nullable = both, schedule).
-   `is_advertisable` toggle already exists on `product_images` (Milestone 1 image work) — the
-   banner form should query `product_images where is_advertisable = true` for the picker.
-3. Reviews moderation page (`app/admin/reviews/`) — table exists, no UI yet. Low priority until
-   Milestone 3/5 produce actual completed orders to review.
-4. Dashboard widgets (`app/admin/page.tsx` is still a placeholder paragraph) — orders by status,
-   revenue by country, low-stock alerts, top products. Depends on Milestone 3 (orders) to be
-   meaningful; fine to defer until then.
-5. Docker is NOT available in this environment — `supabase start`/`db push`/`db seed` have not
+1. Product listing page (`app/(store)/[locale]/products/page.tsx`): server component, query
+   `products` joined to `product_country` filtered by the country cookie (read server-side via
+   `cookies()` here — fine for this page since it's inherently per-country dynamic, unlike the
+   home page) and `is_visible=true`, filters (category/brand/price/in-stock) + sort as URL
+   search params, grid using the `grid-cols-2 lg:grid-cols-4` pattern from DESIGN.md.
+2. PDP (`app/(store)/[locale]/products/[slug]/page.tsx`): gallery (use `product_images`,
+   `productImageUrl()` helper from `lib/images/url.ts`), price in local currency, stock badge,
+   JSON-LD Product schema, related products. ISR (`export const revalidate`).
+3. Home page needs real content: category tiles (query `categories`), featured products
+   (`tags` contains 'featured' or a `is_featured` flag — schema doesn't have one, decide in
+   docs/DECISIONS.md), banner slots (banners table + placement `home_hero`/`home_strip` — table
+   exists, no admin UI to populate it yet, so this will render empty until the banners manager
+   (below) exists — build banners admin CRUD before/alongside this if banner slots matter now).
+4. Cart: localStorage-persisted (per architecture doc "State" section), country-locked with a
+   confirm dialog on country switch if the cart is non-empty and the new country differs
+   (`CountrySwitcher` in `components/store/country-switcher.tsx` currently just refreshes with
+   no cart-awareness — needs a cart context to check against).
+5. Settings page, banners manager, reviews moderation, dashboard widgets — all still pending
+   from Milestone 1 (see above), all low-risk CRUD following the products/pickup-points pattern.
+6. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates — do this alongside
+   the listing/PDP pages, not as an afterthought (easier to get `generateMetadata` right per
+   page while building it than to retrofit).
+7. Docker is NOT available in this environment — `supabase start`/`db push`/`db seed` have not
    been run against a live instance. All SQL has been carefully hand-reviewed but is unverified;
    verify in a real environment (or once Docker becomes available) before relying on it.
-6. Run design-consultation before building real storefront UI (Milestone 2 requirement above) —
-   still not done, current UI is shadcn defaults + ad hoc Tailwind, no defined design system yet.
-   **This should happen next** — Milestone 1's remaining items (settings/banners/reviews/
-   dashboard) are all low-risk CRUD following the same pattern as products/pickup-points, so it's
-   reasonable to jump to the design consultation now and finish those M1 leftovers afterward,
-   applying the new tokens as they're built rather than building them twice.
 
 ## Test status
 
