@@ -47,10 +47,15 @@ across loop resumes/context compaction — read it first on every wake-up before
       (`:root`/`.dark`) and fonts swapped in `lib/fonts.ts` (Geist → Inter/Fraunces); verified
       visually in the browser (screenshot: warm bg, serif headline, terracotta CTA rendering
       correctly) and `npm run build`/`lint` clean. Home page hero updated to use `font-heading`.
-      **Not yet done**: category tiles, featured/promo sections, listing+filters, PDP, country
-      switcher UI (cookie logic exists in middleware, no visible switcher component yet), cart,
-      SEO plumbing (sitemap/OG/JSON-LD). This is most of Milestone 2's actual scope — the design
-      system was a prerequisite, not the milestone itself.
+      Site header + country switcher done: `components/store/site-header.tsx` (server component,
+      stays static/ISR-friendly) + `components/store/country-switcher.tsx` (client island using
+      `useSyncExternalStore` to read/write the country cookie without forcing the route dynamic —
+      verified in-browser that `/pt` stays prerendered (`●` in the build output) and the toggle
+      correctly flips the `chelena_country` cookie and re-renders). Nav links to
+      products/cart/orders-track/account are wired but those pages don't exist yet (expected
+      404s until built below).
+      **Not yet done**: category tiles, featured/promo sections, listing+filters, PDP, cart,
+      SEO plumbing (sitemap/OG/JSON-LD). This is most of Milestone 2's remaining scope.
 - [ ] **Milestone 3 — Checkout & orders** — `create_order`/`get_order_by_token` RPCs exist
       (migration 003) but no checkout form, confirmation/tracking pages, or admin pipeline board
       yet. `advance_order_status` RPC (admin transitions) not written yet.
