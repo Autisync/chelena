@@ -54,8 +54,23 @@ across loop resumes/context compaction — read it first on every wake-up before
       correctly flips the `chelena_country` cookie and re-renders). Nav links to
       products/cart/orders-track/account are wired but those pages don't exist yet (expected
       404s until built below).
-      **Not yet done**: category tiles, featured/promo sections, listing+filters, PDP, cart,
-      SEO plumbing (sitemap/OG/JSON-LD). This is most of Milestone 2's remaining scope.
+      Listing page done: `app/(store)/[locale]/products/page.tsx` — country-cookie-aware query
+      (joins `product_country`/`product_images`), filters (category, in-stock) + sort
+      (price asc/desc) as URL search params via `components/store/product-filters.tsx`,
+      `components/store/product-card.tsx` grid using the DESIGN.md 2/4-col pattern. Brand filter
+      and price-range filter are NOT wired (category/in-stock/sort only) — brand needs a distinct
+      values query, price-range needs a min/max UI; both straightforward additions, just not done.
+      PDP done: `app/(store)/[locale]/products/[slug]/page.tsx` — gallery (detail variant),
+      price/stock badge, description, JSON-LD Product schema (offers + aggregateRating from
+      approved reviews), related products (same category), `generateMetadata` from SEO fields,
+      ISR (`revalidate = 300`). Could NOT visually verify listing/PDP in-browser — both need a
+      live Supabase instance (Docker unavailable in this environment, same blocker as before);
+      confirmed instead that the failure is exactly "missing Supabase credentials" (not a code
+      bug) via a browser screenshot of the dev-mode error overlay. Build + lint + unit tests all
+      clean regardless.
+      **Not yet done**: category tiles, featured/promo sections on the home page (home is still
+      just the hero), cart, SEO plumbing beyond per-page metadata (sitemap.xml, robots.txt,
+      OG images, hreflang alternates — see docs/architecture "SEO plan").
 - [ ] **Milestone 3 — Checkout & orders** — `create_order`/`get_order_by_token` RPCs exist
       (migration 003) but no checkout form, confirmation/tracking pages, or admin pipeline board
       yet. `advance_order_status` RPC (admin transitions) not written yet.

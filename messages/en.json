@@ -17,5 +17,23 @@
     "AO": "Angola",
     "PT": "Portugal",
     "switch": "Country"
+  },
+  "Products": {
+    "title": "Products",
+    "empty": "No products available for your country right now.",
+    "allCategories": "All categories",
+    "sortLabel": "Sort",
+    "sortDefault": "Relevance",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "inStockOnly": "In stock only"
+  },
+  "PDP": {
+    "outOfStock": "Out of stock",
+    "inStock": "In stock",
+    "addToCart": "Add to cart",
+    "descriptionTitle": "Description",
+    "relatedTitle": "You may also like",
+    "reviewsTitle": "Reviews"
   }
 }
