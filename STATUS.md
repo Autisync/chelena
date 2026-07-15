@@ -36,11 +36,21 @@ across loop resumes/context compaction — read it first on every wake-up before
       **Not yet done**: "advertisable" flag surfaces in image-uploader but nothing consumes it
       yet (banners manager), reviews moderation, settings page (payment templates/WhatsApp
       number/Google place id — seeded placeholder rows exist), dashboard widgets.
-- [ ] **Milestone 2 — Storefront** — home page is a placeholder hero only; needs category tiles,
-      featured/promo sections, listing+filters, PDP, country switcher, cart, SEO plumbing.
-      **Run design-consultation (ui-ux-pro-max or impeccable skill) before this milestone** per
-      the user's explicit instruction — establishes the real design system/tokens; current UI
-      uses shadcn defaults only.
+- [~] **Milestone 2 — Storefront** — design system done: `DESIGN.md` (Fraunces display font +
+      Inter body, warm-neutral palette with terracotta/oxblood accent — see file for full
+      rationale). Note on process: the `/design-consultation` gstack skill was invoked per the
+      user's instruction but its flow is built around many interactive AskUserQuestion gates
+      (competitive research prompts, taste-profile confirmation, etc.) that would block
+      indefinitely in this unattended overnight session — bypassed the interactive flow and
+      authored DESIGN.md directly using the product context already established, then applied
+      the tokens (documented in docs/DECISIONS.md). Tokens applied to `app/globals.css`
+      (`:root`/`.dark`) and fonts swapped in `lib/fonts.ts` (Geist → Inter/Fraunces); verified
+      visually in the browser (screenshot: warm bg, serif headline, terracotta CTA rendering
+      correctly) and `npm run build`/`lint` clean. Home page hero updated to use `font-heading`.
+      **Not yet done**: category tiles, featured/promo sections, listing+filters, PDP, country
+      switcher UI (cookie logic exists in middleware, no visible switcher component yet), cart,
+      SEO plumbing (sitemap/OG/JSON-LD). This is most of Milestone 2's actual scope — the design
+      system was a prerequisite, not the milestone itself.
 - [ ] **Milestone 3 — Checkout & orders** — `create_order`/`get_order_by_token` RPCs exist
       (migration 003) but no checkout form, confirmation/tracking pages, or admin pipeline board
       yet. `advance_order_status` RPC (admin transitions) not written yet.

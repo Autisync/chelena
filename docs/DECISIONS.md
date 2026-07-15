@@ -2,6 +2,20 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## Bypassed the interactive `/design-consultation` gstack skill flow
+
+The user's instruction was to "run a design consultation (ui-ux-pro-max or impeccable
+design-consultation skill)" before Milestone 2. Invoking `/design-consultation` surfaced a
+gstack-authored workflow built around multiple `AskUserQuestion` gates (product-context
+confirmation, "want competitive research?", taste-profile conflicts, etc.) — appropriate for an
+interactive session, but this is an unattended overnight `/loop` run with no one to answer. Per
+the loop's own standing instruction ("do not block on questions; make reasonable
+interpretations"), skipped the interactive gates and authored `DESIGN.md` directly: same
+deliverable (a complete token system — palette, type, spacing, radii, motion — with rationale),
+produced from the product context already loaded (docx/01-02) rather than through the skill's
+question flow. Tokens were then applied to `app/globals.css` and `lib/fonts.ts` and verified
+visually in a browser screenshot before committing.
+
 ## Next.js 16 / Turbopack instead of "14+"
 
 `create-next-app@latest` installed Next.js 16.2.10 (Turbopack build by default). The architecture

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { geistSans, geistMono } from "@/lib/fonts";
+import { inter } from "@/lib/fonts";
 import { createClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
 import "../globals.css";
@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== "admin") redirect("/pt");
 
   return (
-    <html lang="pt" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="pt" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex bg-muted/30">
         <AdminNav />
         <div className="flex-1 overflow-auto">{children}</div>

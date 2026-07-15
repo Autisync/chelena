@@ -1,4 +1,10 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 
-export const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-export const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// See DESIGN.md "Typography" — Fraunces for display/headings (storefront only),
+// Inter for body/UI everywhere (including admin, which uses no display font).
+export const inter = Inter({ variable: "--font-sans", subsets: ["latin"] });
+export const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  axes: ["opsz", "SOFT", "WONK"],
+});

@@ -3,7 +3,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { geistSans, geistMono } from "@/lib/fonts";
+import { inter, fraunces } from "@/lib/fonts";
 import "../../globals.css";
 
 export function generateStaticParams() {
@@ -30,7 +30,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang={locale} className={`${inter.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
