@@ -1,0 +1,21 @@
+{
+  "Home": {
+    "heroTitle": "Beauty, delivered to your door — for pickup",
+    "heroSubtitle": "Curated cosmetics, with pickup points in Angola and Portugal.",
+    "heroCta": "Browse the catalog",
+    "categoriesTitle": "Categories",
+    "featuredTitle": "Featured",
+    "newArrivalsTitle": "New arrivals"
+  },
+  "Nav": {
+    "products": "Products",
+    "cart": "Cart",
+    "account": "Account",
+    "trackOrder": "Track order"
+  },
+  "Country": {
+    "AO": "Angola",
+    "PT": "Portugal",
+    "switch": "Country"
+  }
+}

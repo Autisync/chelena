@@ -1,0 +1,21 @@
+{
+  "Home": {
+    "heroTitle": "Beleza que chega até si",
+    "heroSubtitle": "Cosmética selecionada, com levantamento em Angola e Portugal.",
+    "heroCta": "Ver catálogo",
+    "categoriesTitle": "Categorias",
+    "featuredTitle": "Destaques",
+    "newArrivalsTitle": "Novidades"
+  },
+  "Nav": {
+    "products": "Produtos",
+    "cart": "Carrinho",
+    "account": "Conta",
+    "trackOrder": "Acompanhar encomenda"
+  },
+  "Country": {
+    "AO": "Angola",
+    "PT": "Portugal",
+    "switch": "País"
+  }
+}
