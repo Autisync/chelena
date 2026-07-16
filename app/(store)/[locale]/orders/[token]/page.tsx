@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { formatMoney } from "@/lib/currency";
 import { ReviewForm } from "@/components/store/review-form";
+import { ClaimOrderPrompt } from "@/components/store/claim-order-prompt";
 
 const STATUS_STEPS = [
   "pending_review",
@@ -89,6 +90,8 @@ export default async function OrderTrackingPage({
         <span>{t("subtotal")}</span>
         <span>{formatMoney(order.subtotal, order.currency, locale)}</span>
       </div>
+
+      {!order.user_id && <ClaimOrderPrompt trackingToken={token} />}
 
       {order.status === "completed" && !!items?.length && (
         <section className="mt-10">

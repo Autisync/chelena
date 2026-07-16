@@ -670,6 +670,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      claim_order: { Args: { p_tracking_token: string }; Returns: boolean }
       create_order: {
         Args: {
           p_country: Database["public"]["Enums"]["country_code"]

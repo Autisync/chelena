@@ -91,5 +91,12 @@
     "alreadyReviewed": "You've already reviewed this product.",
     "alsoGoogle": "Want to also review us on Google? →",
     "error": "Could not submit the review."
+  },
+  "Claim": {
+    "title": "Track your orders faster next time",
+    "hint": "Create an account (or sign in if you already have one) to see this and future orders in one place.",
+    "claimButton": "Link this order to my account",
+    "claimed": "Order linked to your account!",
+    "error": "Could not link the order. Please try again."
   }
 }

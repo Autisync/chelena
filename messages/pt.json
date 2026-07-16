@@ -91,5 +91,12 @@
     "alreadyReviewed": "Já avaliou este produto.",
     "alsoGoogle": "Também gostaria de avaliar no Google? →",
     "error": "Não foi possível enviar a avaliação."
+  },
+  "Claim": {
+    "title": "Acompanhe as suas encomendas mais facilmente",
+    "hint": "Crie uma conta (ou entre, se já tiver uma) para ver esta e futuras encomendas num só lugar.",
+    "claimButton": "Associar esta encomenda à minha conta",
+    "claimed": "Encomenda associada à sua conta!",
+    "error": "Não foi possível associar a encomenda. Tente novamente."
   }
 }

@@ -287,6 +287,23 @@ verified-purchase by construction). All changes rebuilt/relinted/retested (unit 
 still pass) and the search/price-filter/JSON-LD additions verified visually in-browser against
 real seeded data. See docs/DECISIONS.md for full detail on each fix and what's still open.
 
+## ⚠️ Vercel production deployments are failing — needs user action
+
+Vercel is connected to this GitHub repo and auto-deploys every push to `main`. Every deployment
+since the "banners manager" commit (7+ in a row) has failed at build time with `Error: supabaseUrl
+is required` while prerendering `/pt` — the Vercel project has no `NEXT_PUBLIC_SUPABASE_URL` (or
+the other Supabase env vars) configured in its Environment Variables settings; they only exist in
+this machine's local, gitignored `.env.local`. **Not an outage** — Vercel keeps serving the last
+successful deployment, so production is just several commits stale, not broken. The user was
+asked (mid-session) how they want this fixed and said "let me set them for you," but the Vercel
+MCP tools available in this session are read-only (deployments/logs/projects) — there is no
+write/set-env-var tool, so this could NOT actually be done from here. The user was told this and
+given exact instructions (Vercel dashboard → chelena project → Settings → Environment Variables →
+add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+`MOCK_PROVIDERS=true`, `NEXT_PUBLIC_SITE_URL`, then redeploy). **Still needs the user to do this**
+— nothing in this repo can fix it; don't keep re-attempting via Vercel tools on future wake-ups,
+just leave this note and move on to other work.
+
 ## Immediate next steps (pick up here)
 
 1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
@@ -300,14 +317,22 @@ real seeded data. See docs/DECISIONS.md for full detail on each fix and what's s
    real second image to a seeded product via the actual sharp pipeline (not a stub), confirmed
    both thumbnails render and clicking the second one swaps the main image (screenshot-verified
    before/after), then cleaned up the test image and its DB row.
-3. Post-checkout account claim: PRD P0 — "Optional account... Post-checkout prompt to claim the
-   order into a new account." The order tracking page (`app/(store)/[locale]/orders/[token]/`)
-   has no such prompt yet; the login form exists (`components/auth/login-form.tsx`) but isn't
-   surfaced there. Needs a Supabase Auth call to link the guest order's `user_id` to the newly
-   created account after signup — check how `orders.user_id` should get backfilled for a guest
-   order once the customer claims it (not obviously supported by the current schema/RPCs; may
-   need a new RPC or a simple `update orders set user_id = auth.uid() where tracking_token = ...`
-   with an RLS policy allowing it for the authenticated user right after signup).
+3. ~~Post-checkout account claim~~ — **done**: `claim_order(p_tracking_token uuid)` RPC
+   (migration 009, SECURITY DEFINER — the token is the proof of ownership, same pattern as
+   `get_order_by_token`; only ever claims an order matching both the token AND still having
+   `user_id is null`, so it can't hijack someone else's order or re-claim an already-claimed
+   one). `components/store/claim-order-prompt.tsx` on the tracking page (shown whenever
+   `!order.user_id`): if already signed in, one-click claim button; if not, the existing
+   `LoginForm` with `next=<current-url>?claim=1`, auto-claiming via a `useRef` guard once the
+   session exists post-redirect (not `useState` — the first draft synchronously called
+   `setState` inside the effect body, which the stricter React Compiler lint rule flags as a
+   cascading-render risk; refactored to a ref guard + async RPC call instead). Also fixed a
+   real latent bug while touching this: `login-form.tsx` interpolated `next` into the redirect
+   URL without `encodeURIComponent`, which would break for `next` values containing `&`.
+   **Verified**: build/lint/unit tests clean, both e2e specs still pass, and visually confirmed
+   in-browser on a real guest order's tracking page — the claim card renders with the login form
+   embedded. Did not verify the actual claim (would need a real email inbox for the OTP link,
+   same class of blocker as admin login).
 4. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
    are done — see above).
 5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
