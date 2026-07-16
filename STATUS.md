@@ -220,25 +220,33 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       **Verified live**: loaded `/sitemap.xml` and `/robots.txt` in-browser — sitemap shows all
       8 real products with real `lastmod` timestamps and correct locale/category URL variants;
       robots.txt correctly disallows admin/api and points at the sitemap.
+      Dashboard widgets done: `app/admin/page.tsx` — orders by status (all 8 statuses, zero-
+      filled), revenue by country (sum of subtotal for non-cancelled/non-pending orders),
+      low-stock alerts (`product_country.stock < 5`, visible only), top 5 products by units sold
+      (aggregated client-side from `order_items`). **Partially verified**: can't load the page
+      itself (needs admin login, same blocker as the order board), but ran the same underlying
+      queries via curl (service role) against the live DB — both returned `[]` cleanly (no
+      syntax/permission errors; genuinely empty since all test orders were cleaned up and no
+      product is under the low-stock threshold), confirming the query shapes are valid and the
+      empty states will render correctly.
       **Not yet done**: wishlist (P1, lower priority), general polish pass (empty/error states,
-      accessibility), dashboard widgets, featured products + `home_strip` banner on the home page.
+      accessibility), featured products + `home_strip` banner on the home page.
 - [ ] **Milestone 6 — Production readiness** — not started.
 
 ## Immediate next steps (pick up here)
 
 1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
    manual step (needs email access), see README "Create the first admin". This unblocks
-   verifying: the admin role guard, the admin order board + its notification dispatch, the
-   settings page, and auth-gated RLS paths generally. Highest-value next step — every guest-
-   facing flow is now verified, and the admin side is the main remaining unknown.
-2. Dashboard widgets (`app/admin/page.tsx` is still a placeholder) — orders by status, revenue
-   by country, low-stock alerts, top products. Meaningful now that real orders/products exist.
-3. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
+   verifying: the admin role guard, the admin order board + notification dispatch, the settings
+   page, and now the dashboard — every guest-facing flow is verified; the admin side (built,
+   type-checked, spot-checked at the query level, but never loaded through a real browser
+   session) is the one remaining unknown, and it's entirely gated on this one manual step.
+2. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
    are done — see above).
-4. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
+3. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
    page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
    should probably use the public client instead of `lib/supabase/server.ts`.
-5. Milestone 6 (production readiness): rate limiting is in-memory-only (needs Upstash before
+4. Milestone 6 (production readiness): rate limiting is in-memory-only (needs Upstash before
    real launch, already flagged), Playwright e2e tests not set up, RLS test suite not written,
    analytics not wired. This is most of what's left before "launch-ready" per the plan.
 
