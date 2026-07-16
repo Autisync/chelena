@@ -231,7 +231,25 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       empty states will render correctly.
       **Not yet done**: wishlist (P1, lower priority), general polish pass (empty/error states,
       accessibility), featured products + `home_strip` banner on the home page.
-- [ ] **Milestone 6 — Production readiness** — not started.
+- [~] **Milestone 6 — Production readiness** — started. Playwright installed and configured
+      (`playwright.config.ts`, runs against a real `npm run dev` server + the real linked
+      Supabase project, `webServer.reuseExistingServer` so it doesn't fight a server already
+      running). First e2e test: `test/e2e/guest-checkout.spec.ts` — full browse → PDP → add to
+      cart → checkout → tracking-page-confirmation golden path (hard rule #10's first bullet),
+      with cleanup (deletes the test order, restores the stock it decremented) so repeated runs
+      don't pollute the live project. **Ran it — passed** (`npm run test:e2e`), then verified the
+      cleanup actually worked via curl (orders table empty again, stock back to 25).
+      RLS test suite: `test/integration/rls.test.ts` (vitest, `npm run test:integration`) —
+      automates the manual curl checks from `test/integration/live-supabase.md`: anon can read
+      catalog tables, anon is blocked from settings/notifications/order_status_history, anon
+      cannot insert directly into orders, `create_order` rejects an empty cart. **Ran it — all 7
+      pass** against the live project. Kept out of the default `npm test` (now `vitest run
+      test/unit` explicitly) since it needs network + real credentials; `npm test` stays
+      fast/offline as it should for a normal dev loop.
+      **Not yet done**: admin-side e2e (verify → status advance → notification asserted) needs a
+      real admin login, same blocker as everywhere else on the admin side; Upstash-backed rate
+      limiting (still in-memory-only); analytics wiring; a broader e2e suite (checkout edge
+      cases, review submission, admin CRUD) beyond this first happy-path test.
 
 ## Immediate next steps (pick up here)
 

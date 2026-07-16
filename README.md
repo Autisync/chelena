@@ -72,6 +72,12 @@ update profiles set role = 'admin' where id = '<user-id-from-auth.users>';
 ## Tests
 
 ```bash
-npm test          # unit tests (image pipeline, create_order)
-npx playwright test   # e2e (browse → cart → checkout, admin verify → notification, review flow)
+npm test               # unit tests (image pipeline)
+npm run test:integration  # RLS + create_order checks against the linked Supabase project
+npm run test:e2e       # Playwright: guest browse → cart → checkout, against a real dev server + DB
 ```
+
+`test:integration` and `test:e2e` need real Supabase credentials in `.env.local` (they exercise
+the linked project directly, not a mock) — skip both in an environment without them.
+Admin-side e2e coverage (verify → status advance → notification) needs a real signed-up admin
+account and isn't automated yet; see `STATUS.md`.
