@@ -246,10 +246,31 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       pass** against the live project. Kept out of the default `npm test` (now `vitest run
       test/unit` explicitly) since it needs network + real credentials; `npm test` stays
       fast/offline as it should for a normal dev loop.
+      Second e2e test added: `test/e2e/review-submission.spec.ts` — creates a real completed
+      order (create_order + service-role status flip, faster/more deterministic than driving
+      the not-yet-admin-login-able verify/advance flow through the UI), submits a review through
+      the actual form, approves it (simulating admin), confirms it renders on the PDP. **Ran it —
+      passed**, plus fixed a real config bug it exposed: `fullyParallel: false` alone doesn't cap
+      workers across files, so the two e2e specs ran on 2 workers despite sharing the live DB
+      (a genuine cross-test race risk, just didn't collide this time since they use different
+      products) — added `workers: 1` and re-ran to confirm "1 worker" in the output. Both tests'
+      cleanup verified via curl afterward (orders + reviews tables empty again).
+      Analytics wired: `@vercel/analytics` in the storefront layout, plus `lib/analytics.ts`
+      custom events (add_to_cart, checkout_started, order_completed) wired into the add-to-cart
+      button and checkout form — satisfies the Milestone 6 exit criteria's "basic event
+      tracking". `track()` is a safe no-op outside Vercel's runtime, so nothing to verify locally
+      beyond "it doesn't crash," confirmed via the e2e tests still passing.
+      Rate limiting upgraded: `lib/rate-limit.ts` now tries Upstash (`@upstash/ratelimit` +
+      `@upstash/redis`, sliding window) first, falling back to the original in-memory bucket when
+      `UPSTASH_REDIS_REST_URL`/`_TOKEN` aren't set (this repo's `.env.local` has neither, so the
+      fallback is what's actually exercised here — same shape as the WhatsApp/Resend
+      `MOCK_PROVIDERS` situation). `rateLimit()` is now async; both call sites (`/api/checkout`,
+      `/api/reviews`) updated. Confirmed via the e2e tests still passing that this didn't break
+      either route — the Upstash code path itself is genuinely untestable without a real
+      instance, documented in docs/DECISIONS.md and docs/LAUNCH-CHECKLIST.md.
       **Not yet done**: admin-side e2e (verify → status advance → notification asserted) needs a
-      real admin login, same blocker as everywhere else on the admin side; Upstash-backed rate
-      limiting (still in-memory-only); analytics wiring; a broader e2e suite (checkout edge
-      cases, review submission, admin CRUD) beyond this first happy-path test.
+      real admin login, same blocker as everywhere else on the admin side; RLS test suite for the
+      auth-gated policies (own-order select, admin-all) — same blocker.
 
 ## Immediate next steps (pick up here)
 

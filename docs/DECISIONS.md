@@ -2,6 +2,28 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## No custom rate limiting on auth — Supabase Auth already does it
+
+Hard rule #4 says "rate limiting on checkout/review/auth". Checkout and reviews go through
+Next.js route handlers (`lib/rate-limit.ts`, now Upstash-backed with an in-memory dev fallback —
+see below), but there's no custom Next.js auth route to attach a limiter to: the login form
+calls `supabase.auth.signInWithOtp()` / `signInWithOAuth()` directly from the client
+(`components/auth/login-form.tsx`), and Supabase Auth (GoTrue) enforces its own rate limits on
+those endpoints server-side, outside this app's code entirely. Building a redundant limiter in
+front of a client-side SDK call that Supabase already protects would add complexity without
+adding protection.
+
+## Rate limiting: Upstash-backed with an in-memory dev fallback (implemented, unverified live)
+
+`lib/rate-limit.ts` now tries Upstash Redis first (`@upstash/ratelimit` + `@upstash/redis`,
+sliding window) and falls back to the original in-memory token bucket when
+`UPSTASH_REDIS_REST_URL`/`_TOKEN` aren't set — this repo's `.env.local` has neither, so every
+request in this environment exercises the fallback path, same situation as WhatsApp/Resend
+behind `MOCK_PROVIDERS`. The checkout and review e2e tests both still pass end-to-end after this
+change (confirms the async `rateLimit()` signature didn't break either route), but the actual
+Upstash code path is genuinely untested — there's no way to verify it without a real Upstash
+instance. Flagged in `docs/LAUNCH-CHECKLIST.md`.
+
 ## hreflang: locale-only (pt/en), not country-scoped (pt-PT/pt-AO)
 
 The architecture doc's SEO plan calls for hreflang `pt-PT`, `pt-AO`, and `en`, implying country

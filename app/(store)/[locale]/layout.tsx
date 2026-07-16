@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { inter, fraunces } from "@/lib/fonts";
 import { SiteHeader } from "@/components/store/site-header";
+import { Analytics } from "@vercel/analytics/react";
 import "../../globals.css";
 
 export function generateStaticParams() {
@@ -37,6 +38,7 @@ export default async function LocaleLayout({
           <SiteHeader locale={locale} />
           {children}
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );

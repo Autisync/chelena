@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCart } from "@/lib/cart/use-cart";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatMoney } from "@/lib/currency";
+import { trackCheckoutStarted, trackOrderCompleted } from "@/lib/analytics";
 import type { Country } from "@/lib/country";
 
 type PickupPoint = { id: string; name: string; city: string; hours: string | null };
@@ -27,6 +28,14 @@ export function CheckoutForm({
   const t = useTranslations("Checkout");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trackedStart = useRef(false);
+
+  useEffect(() => {
+    if (items.length && !trackedStart.current) {
+      trackedStart.current = true;
+      trackCheckoutStarted(items.length);
+    }
+  }, [items.length]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,6 +66,7 @@ export function CheckoutForm({
       return;
     }
 
+    trackOrderCompleted(body.order_number, country);
     clearCart();
     router.push(`/${locale}/orders/${body.tracking_token}`);
   }

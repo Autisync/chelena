@@ -6,7 +6,8 @@ import { defineConfig, devices } from "@playwright/test";
 // repeatedly without spamming real customers.
 export default defineConfig({
   testDir: "./test/e2e",
-  fullyParallel: false, // tests share the live DB; avoid cross-test stock races
+  fullyParallel: false,
+  workers: 1, // tests share the live DB; fullyParallel alone doesn't cap cross-file workers
   retries: 0,
   reporter: "list",
   use: {

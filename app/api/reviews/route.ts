@@ -12,7 +12,7 @@ import { rateLimit } from "@/lib/rate-limit";
 // itself (random uuid, unguessable) is the authorization.
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!rateLimit(`review:${ip}`, 5, 60_000)) {
+  if (!(await rateLimit(`review:${ip}`, 5, 60_000))) {
     return NextResponse.json({ error: "too many requests" }, { status: 429 });
   }
 

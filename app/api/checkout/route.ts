@@ -10,7 +10,7 @@ import { dispatchQueuedNotifications } from "@/lib/notifications/dispatch";
 // never trusting client-supplied prices or product names.
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!rateLimit(`checkout:${ip}`, 10, 60_000)) {
+  if (!(await rateLimit(`checkout:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: "too many requests" }, { status: 429 });
   }
 

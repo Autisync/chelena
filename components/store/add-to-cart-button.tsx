@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart/use-cart";
+import { trackAddToCart } from "@/lib/analytics";
 import type { Country } from "@/lib/country";
 
 export function AddToCartButton({
@@ -39,6 +40,7 @@ export function AddToCartButton({
       if (!confirmed) return;
     }
     addItem({ productId, slug, name, price, currency, quantity: 1, imagePath, stock }, country);
+    trackAddToCart(productId, name);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
