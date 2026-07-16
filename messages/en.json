@@ -66,6 +66,7 @@
     "cancelled": "This order was cancelled",
     "pickupDate": "Pickup date",
     "subtotal": "Subtotal",
+    "reviewsTitle": "Review your purchase",
     "status": {
       "pending_review": "Order received",
       "verified": "Verified",
@@ -75,5 +76,14 @@
       "ready_for_pickup": "Ready for pickup",
       "completed": "Completed"
     }
+  },
+  "Reviews": {
+    "bodyPlaceholder": "Tell us about your experience (optional)",
+    "submit": "Submit review",
+    "submitting": "Sending…",
+    "thanks": "Thanks for your review!",
+    "alreadyReviewed": "You've already reviewed this product.",
+    "alsoGoogle": "Want to also review us on Google? →",
+    "error": "Could not submit the review."
   }
 }

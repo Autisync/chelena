@@ -63,6 +63,18 @@ Real checkout via the dev server (browser, cart from a real seeded product) → 
 Test order cleaned up afterward. Retry/fallback path (2 failed WhatsApp → switch to email) not
 exercised — would need a forced failure, not worth destabilizing the live project to test.
 
+## Review submission — verified 2026-07-16
+
+Created a real order via `create_order`, manually set `status='completed'` (service role — safe
+test-data edit, unlike touching `auth.users`), then via `/api/reviews`:
+- Submit → `{"ok":true,"googleReviewUrl":null}` (correctly null, no `google_place_id` set).
+- DB row: `is_approved: false` as expected (pending moderation).
+- Duplicate submit (same order+product) → `409 {"error":"already reviewed"}`.
+- Approved the review (service role, simulating admin), reloaded the PDP → review rendered
+  correctly ("★★★★★ Teste Review — Adorei o produto, recomendo!") along with the aggregate
+  "★ 5.0 (1)" badge next to the price.
+Test order and review cleaned up afterward.
+
 ## Not verified (needs a signed-up user)
 
 Auth-gated paths (admin role guard, `is_admin()`, own-order `select` policy) need a real

@@ -161,7 +161,29 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       temporarily breaking MOCK_PROVIDERS — not done to avoid leaving the system in an odd
       state); the admin-transition notification path (`advance_order_status` → dispatch),
       blocked on the same missing-admin-login issue as the order board.
-- [ ] **Milestone 5 — Reviews, Google, banners, polish** — not started.
+- [~] **Milestone 5 — Reviews, Google, banners, polish** — reviews done and verified live.
+      `lib/validation/review.ts` + `app/api/reviews/route.ts` (rate-limited, service-role —
+      authorization is "order is completed AND actually contains this product", business logic
+      that can't live in an RLS policy since it needs to see the order+order_items together, not
+      just the row being inserted; the tracking_token is the actual authorization check, same
+      pattern as guest order tracking). `components/store/review-form.tsx` on the tracking page
+      for completed orders (no "already reviewed" pre-check — anon can't read its own unapproved
+      review row under RLS, so this relies on the unique constraint's 409 and shows a friendly
+      message). PDP now renders the approved-reviews list + a ★ rating badge next to the price
+      (previously only computed aggregateRating for JSON-LD, didn't display it — see
+      `app/(store)/[locale]/products/[slug]/page.tsx`). Admin moderation:
+      `app/admin/reviews/` (approve/hide toggle + reply field).
+      **Verified live**: created a test order via `create_order`, manually set it to `completed`
+      (service role — orders don't carry GoTrue's invariants, unlike auth.users, so this is
+      safe test-data manipulation, not the same risk class), submitted a review via the API
+      (`is_approved: false` correctly), confirmed a duplicate submit correctly 409s, approved it
+      (simulating admin), and confirmed it renders on the PDP with the right star count and the
+      JSON-LD `aggregateRating` picks it up. Test data cleaned up after.
+      **Not yet done**: Google Places rating widget (needs `GOOGLE_PLACES_API_KEY` — not in this
+      repo's `.env.local`, so build it to degrade gracefully when absent, same as the
+      `googleReviewUrl` handling in the reviews API), banners manager (admin CRUD is straightforward
+      but not written), wishlist (P1, lower priority), general polish pass (empty/error states,
+      accessibility).
 - [ ] **Milestone 6 — Production readiness** — not started.
 
 ## Immediate next steps (pick up here)
@@ -170,13 +192,14 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
    manual step (needs email access), see README "Create the first admin". This unblocks
    verifying: the admin role guard, the admin order board + its notification dispatch, and
    auth-gated RLS paths generally. Highest-value next step now that guest-facing flows
-   (browse/cart/checkout/tracking/notifications) are fully verified.
-2. Milestone 5: reviews (submission tokenized to completed orders + moderation + JSON-LD
-   aggregateRating — the PDP already renders aggregateRating from `reviews`, just needs real
-   review rows to populate it), Google Places rating widget (cached 24h in `settings`), banners
-   manager (`is_advertisable` images already exist from the image pipeline), wishlist (P1,
-   lower priority).
-3. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
+   (browse/cart/checkout/tracking/notifications/reviews) are fully verified.
+2. Banners manager (`app/admin/banners/`) — CRUD per PRD (image must be `is_advertisable`,
+   placement `home_hero|home_strip|category_top`, country nullable, schedule); render in home
+   page placements once built.
+3. Google Places rating widget — server-side fetch cached 24h in `settings` (key/value already
+   supports this), degrade gracefully with no API key (this repo has none). Low priority since
+   the PRD explicitly says this is fine to ship degraded.
+4. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
    the products/pickup-points pattern.
 4. Home page needs real content: category tiles, featured products, banner slots.
 5. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { formatMoney } from "@/lib/currency";
+import { ReviewForm } from "@/components/store/review-form";
 
 const STATUS_STEPS = [
   "pending_review",
@@ -88,6 +89,24 @@ export default async function OrderTrackingPage({
         <span>{t("subtotal")}</span>
         <span>{formatMoney(order.subtotal, order.currency, locale)}</span>
       </div>
+
+      {order.status === "completed" && !!items?.length && (
+        <section className="mt-10">
+          <h2 className="mb-3 font-heading text-lg font-medium">{t("reviewsTitle")}</h2>
+          <div className="flex flex-col gap-3">
+            {items.map((item) =>
+              item.product_id ? (
+                <ReviewForm
+                  key={item.product_id}
+                  trackingToken={token}
+                  productId={item.product_id}
+                  productName={item.product_name}
+                />
+              ) : null
+            )}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

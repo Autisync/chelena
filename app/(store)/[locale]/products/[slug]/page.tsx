@@ -19,7 +19,7 @@ async function getProduct(slug: string, country: "AO" | "PT") {
   const { data: product } = await supabase
     .from("products")
     .select(
-      "*, product_country!inner(*), product_images(*), reviews(rating, is_approved)"
+      "*, product_country!inner(*), product_images(*), reviews(id, rating, is_approved, customer_name, body, created_at)"
     )
     .eq("slug", slug)
     .eq("is_active", true)
@@ -69,7 +69,14 @@ export default async function ProductDetailPage({
   const inStock = pc.stock > 0;
   const description = locale === "en" ? product.description_en : product.description_pt;
 
-  type ReviewRow = { rating: number; is_approved: boolean };
+  type ReviewRow = {
+    id: string;
+    rating: number;
+    is_approved: boolean;
+    customer_name: string;
+    body: string | null;
+    created_at: string | null;
+  };
   const approvedReviews = ((product.reviews ?? []) as ReviewRow[]).filter((r) => r.is_approved);
   const avgRating = approvedReviews.length
     ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length
@@ -141,6 +148,12 @@ export default async function ProductDetailPage({
         <div className="flex flex-col gap-4">
           {product.brand && <span className="text-sm text-muted-foreground">{product.brand}</span>}
           <h1 className="font-heading text-3xl font-medium">{product.name}</h1>
+          {avgRating && (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <span className="text-accent">★</span>
+              {avgRating.toFixed(1)} ({approvedReviews.length})
+            </div>
+          )}
           <div className="flex items-baseline gap-2">
             <span className="text-2xl">{formatMoney(pc.price, pc.currency, locale)}</span>
             {pc.compare_at_price && (
@@ -176,6 +189,23 @@ export default async function ProductDetailPage({
           )}
         </div>
       </div>
+
+      {!!approvedReviews.length && (
+        <section className="mt-16 max-w-2xl">
+          <h2 className="mb-4 font-heading text-xl font-medium">{t("reviewsTitle")}</h2>
+          <div className="flex flex-col gap-4">
+            {approvedReviews.map((review) => (
+              <div key={review.id} className="border-b border-border pb-4 last:border-0">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-accent">{"★".repeat(review.rating)}</span>
+                  <span className="text-sm font-medium">{review.customer_name}</span>
+                </div>
+                {review.body && <p className="text-sm text-muted-foreground">{review.body}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {!!related?.length && (
         <section className="mt-16">

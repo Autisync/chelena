@@ -66,6 +66,7 @@
     "cancelled": "Esta encomenda foi cancelada",
     "pickupDate": "Data de levantamento",
     "subtotal": "Subtotal",
+    "reviewsTitle": "Avalie a sua compra",
     "status": {
       "pending_review": "Pedido recebido",
       "verified": "Confirmado",
@@ -75,5 +76,14 @@
       "ready_for_pickup": "Pronto para levantamento",
       "completed": "Concluído"
     }
+  },
+  "Reviews": {
+    "bodyPlaceholder": "Conte-nos a sua experiência (opcional)",
+    "submit": "Enviar avaliação",
+    "submitting": "A enviar…",
+    "thanks": "Obrigado pela sua avaliação!",
+    "alreadyReviewed": "Já avaliou este produto.",
+    "alsoGoogle": "Também gostaria de avaliar no Google? →",
+    "error": "Não foi possível enviar a avaliação."
   }
 }
