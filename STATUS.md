@@ -333,8 +333,17 @@ just leave this note and move on to other work.
    in-browser on a real guest order's tracking page — the claim card renders with the login form
    embedded. Did not verify the actual claim (would need a real email inbox for the OTP link,
    same class of blocker as admin login).
-4. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
-   are done — see above).
+4. ~~Home page: featured products + `home_strip` banner~~ — **done**: "featured" reuses the
+   existing `products.tags text[]` with a `'featured'` tag (no schema column exists for this —
+   documented as a deliberate choice over a migration, see docs/DECISIONS.md) — admins set it
+   per product; `components/store/featured-products.tsx` is a client island (same
+   country-cookie-filter pattern as `HomeBanner`/`CountrySwitcher` — server fetches both
+   countries' pricing, client picks the right one, so ISR stays intact). `home_strip` banners
+   reuse the existing generic `HomeBanner` component with a different `placement` prop — no new
+   component needed. **Verified live**: tagged a real seeded product (`serum-vitamina-c`) as
+   featured, confirmed the "Destaques" section renders it with the correct AO-country price;
+   confirmed `npm run build` still shows `●` (ISR) for the home page. Left the tag on
+   deliberately (legitimate demo-state improvement, not test pollution to clean up).
 5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
    page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
    should probably use the public client instead of `lib/supabase/server.ts`.

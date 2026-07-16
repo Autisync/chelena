@@ -2,6 +2,15 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## "Featured" products: a `tags` convention, not a schema column
+
+The home page needs a "featured products" section (PRD/architecture doc both call for one), but
+`products` has no `is_featured` boolean. Rather than a migration for a single flag, featured
+products are just products whose `tags text[]` contains `'featured'` — settable today from the
+existing product edit form's tags field, no admin UI change needed either. If this needs richer
+behavior later (ordering, scheduling a featured window), that's the point to add a real column;
+for a single on/off flag, a tag is simplest and reversible.
+
 ## P0 self-review against docx/02-prd.md — found and fixed 4 real gaps
 
 Did a line-by-line pass of every P0 checkbox in the PRD against what's actually built (rather
