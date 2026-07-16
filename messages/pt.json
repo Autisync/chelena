@@ -26,7 +26,12 @@
     "sortDefault": "Relevância",
     "sortPriceAsc": "Preço: mais baixo",
     "sortPriceDesc": "Preço: mais alto",
-    "inStockOnly": "Só em stock"
+    "inStockOnly": "Só em stock",
+    "searchPlaceholder": "Pesquisar produtos…",
+    "allBrands": "Todas as marcas",
+    "minPrice": "Mín.",
+    "maxPrice": "Máx.",
+    "apply": "Aplicar"
   },
   "Cart": {
     "title": "Carrinho",
@@ -41,7 +46,8 @@
     "addToCart": "Adicionar ao carrinho",
     "descriptionTitle": "Descrição",
     "relatedTitle": "Também pode gostar",
-    "reviewsTitle": "Avaliações"
+    "reviewsTitle": "Avaliações",
+    "verifiedPurchase": "Compra verificada"
   },
   "Checkout": {
     "title": "Finalizar compra",

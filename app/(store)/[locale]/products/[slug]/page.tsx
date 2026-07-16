@@ -8,6 +8,7 @@ import { COUNTRY_COOKIE, isCountry } from "@/lib/country";
 import { productImageUrl } from "@/lib/images/url";
 import { formatMoney } from "@/lib/currency";
 import { localeAlternates } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
 
 // PDP is per-country (price/stock) so it can't be fully static, but the
@@ -130,9 +131,17 @@ export default async function ProductDetailPage({
     }),
   };
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Chelena", url: `${baseUrl}/${locale}` },
+    { name: "Produtos", url: `${baseUrl}/${locale}/products` },
+    { name: product.name, url: `${baseUrl}/${locale}/products/${slug}` },
+  ]);
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="grid grid-cols-4 gap-2 lg:grid-cols-1">
@@ -210,6 +219,14 @@ export default async function ProductDetailPage({
                 <div className="mb-1 flex items-center gap-2">
                   <span className="text-accent">{"★".repeat(review.rating)}</span>
                   <span className="text-sm font-medium">{review.customer_name}</span>
+                  {/* Every review here is inherently a verified purchase — the
+                      only path to create one is app/api/reviews/route.ts,
+                      which requires order.status = 'completed' and the
+                      product to be in that order's items (see the route's
+                      comment). No separate "verified" column to check. */}
+                  <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-medium text-success">
+                    {t("verifiedPurchase")}
+                  </span>
                 </div>
                 {review.body && <p className="text-sm text-muted-foreground">{review.body}</p>}
               </div>

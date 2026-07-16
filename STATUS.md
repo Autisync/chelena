@@ -272,6 +272,21 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       real admin login, same blocker as everywhere else on the admin side; RLS test suite for the
       auth-gated policies (own-order select, admin-all) — same blocker.
 
+## P0 self-review pass — found and fixed 4 real gaps (see docs/DECISIONS.md)
+
+Did a line-by-line pass of every P0 checkbox in docx/02-prd.md against what's actually built
+(per the loop prompt's suggestion) rather than trusting this file's running narrative alone.
+Found and fixed: (1) a genuine bug — `order_ready` notifications never included the Google
+review link despite the template rendering it (migration 008); (2) missing free-text search
+(now `?q=` on the listing page + a search box, also makes the new `WebSite` JSON-LD's
+`SearchAction` point somewhere real); (3) missing price-range and brand filters (both explicit
+P0, only category/in-stock/sort existed); (4) missing `Organization`/`WebSite`/`BreadcrumbList`
+JSON-LD (only `Product` existed — all four are explicit P0). Also added a "verified purchase"
+badge on reviews (was a missing UI label, not a data gap — every review here is inherently
+verified-purchase by construction). All changes rebuilt/relinted/retested (unit + both e2e specs
+still pass) and the search/price-filter/JSON-LD additions verified visually in-browser against
+real seeded data. See docs/DECISIONS.md for full detail on each fix and what's still open.
+
 ## Immediate next steps (pick up here)
 
 1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
@@ -280,14 +295,24 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
    page, and now the dashboard — every guest-facing flow is verified; the admin side (built,
    type-checked, spot-checked at the query level, but never loaded through a real browser
    session) is the one remaining unknown, and it's entirely gated on this one manual step.
-2. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
+2. PDP image gallery: currently shows only one image (the primary). Milestone 2 spec calls for a
+   real gallery — thumbnails + main image switcher, using all of `product_images` sorted by
+   `sort_order`, not just the first one.
+3. Post-checkout account claim: PRD P0 — "Optional account... Post-checkout prompt to claim the
+   order into a new account." The order tracking page (`app/(store)/[locale]/orders/[token]/`)
+   has no such prompt yet; the login form exists (`components/auth/login-form.tsx`) but isn't
+   surfaced there. Needs a Supabase Auth call to link the guest order's `user_id` to the newly
+   created account after signup — check how `orders.user_id` should get backfilled for a guest
+   order once the customer claims it (not obviously supported by the current schema/RPCs; may
+   need a new RPC or a simple `update orders set user_id = auth.uid() where tracking_token = ...`
+   with an RLS policy allowing it for the authenticated user right after signup).
+4. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
    are done — see above).
-3. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
+5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
    page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
    should probably use the public client instead of `lib/supabase/server.ts`.
-4. Milestone 6 (production readiness): rate limiting is in-memory-only (needs Upstash before
-   real launch, already flagged), Playwright e2e tests not set up, RLS test suite not written,
-   analytics not wired. This is most of what's left before "launch-ready" per the plan.
+6. Remaining Milestone 6 items: admin-side e2e + RLS coverage (both gated on a real admin
+   login), wishlist (P1, lower priority), a broader accessibility/empty-state polish pass.
 
 ## Test status
 

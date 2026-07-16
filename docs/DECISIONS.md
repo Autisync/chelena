@@ -2,6 +2,38 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## P0 self-review against docx/02-prd.md — found and fixed 4 real gaps
+
+Did a line-by-line pass of every P0 checkbox in the PRD against what's actually built (rather
+than trusting STATUS.md's running narrative, which can drift). Found:
+
+1. **Bug**: the `order_ready` WhatsApp/email notification never included the Google review link,
+   even though `lib/notifications/templates.ts` renders it — `advance_order_status()` just never
+   set it in the payload. Fixed in migration 008, verified the settings lookup logic directly
+   (the extraction query, `value #>> '{}'`) against a real test value.
+2. **Missing feature**: no free-text search existed at all ("Category and search pages with
+   filters" is explicit P0). Added `?q=` support to the products listing page (`ilike` on name)
+   plus a search box in `ProductFilters`. This also made the `WebSite` JSON-LD's `SearchAction`
+   (added in the same pass) actually point somewhere real instead of a dead URL template.
+3. **Missing feature**: price-range and brand filters were explicit P0 ("filters (category, price
+   range, brand, in-stock)") but only category/in-stock/sort existed. Added both — brand via a
+   distinct-values query, price range via `minPrice`/`maxPrice` params.
+4. **Missing SEO**: only `Product` JSON-LD existed; `Organization`, `WebSite`, and `BreadcrumbList`
+   (all explicit P0) were never added. Added `lib/json-ld.ts` with all three, wired
+   Organization+WebSite into the locale layout (site-wide) and BreadcrumbList into the PDP and
+   listing pages.
+
+Also added a "verified purchase" badge on displayed reviews (PRD: "1–5 stars + text ... with
+verified-purchase badge") — every review here is inherently a verified purchase (the only
+insert path requires a completed order containing the product, see `app/api/reviews/route.ts`),
+so this was just a missing UI label, not a data-model gap.
+
+**Still-open gaps from this review** (lower priority, noted for the next iteration): the PDP
+shows only one product image, not a full multi-image gallery with thumbnails (Milestone 2 spec:
+"gallery"); no post-checkout "claim this order into a new account" prompt (P0: "Optional
+account... Post-checkout prompt to claim the order into a new account"); home page still has no
+featured-products or `home_strip` promo-banner sections. See STATUS.md for tracking.
+
 ## No custom rate limiting on auth — Supabase Auth already does it
 
 Hard rule #4 says "rate limiting on checkout/review/auth". Checkout and reviews go through

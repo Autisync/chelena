@@ -6,6 +6,7 @@ import { COUNTRY_COOKIE, isCountry } from "@/lib/country";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductFilters } from "@/components/store/product-filters";
 import { localeAlternates } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   alternates: localeAlternates("/products"),
@@ -19,7 +20,15 @@ export default async function ProductsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string; brand?: string; sort?: string; inStock?: string }>;
+  searchParams: Promise<{
+    category?: string;
+    brand?: string;
+    sort?: string;
+    inStock?: string;
+    q?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -31,10 +40,11 @@ export default async function ProductsPage({
   const country = isCountry(rawCountry) ? rawCountry : "PT";
 
   const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name_pt, name_en")
-    .order("sort_order");
+  const [{ data: categories }, { data: brandRows }] = await Promise.all([
+    supabase.from("categories").select("id, name_pt, name_en").order("sort_order"),
+    supabase.from("products").select("brand").eq("is_active", true).not("brand", "is", null),
+  ]);
+  const brands = [...new Set((brandRows ?? []).map((r) => r.brand).filter(Boolean))].sort() as string[];
 
   let query = supabase
     .from("products")
@@ -47,6 +57,7 @@ export default async function ProductsPage({
 
   if (filters.category) query = query.eq("category_id", filters.category);
   if (filters.brand) query = query.eq("brand", filters.brand);
+  if (filters.q) query = query.ilike("name", `%${filters.q}%`);
 
   const { data: products } = await query;
 
@@ -69,13 +80,23 @@ export default async function ProductsPage({
   });
 
   if (filters.inStock === "1") rows = rows.filter((r) => r.stock > 0);
+  const minPrice = filters.minPrice ? Number(filters.minPrice) : null;
+  const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : null;
+  if (minPrice !== null) rows = rows.filter((r) => r.price >= minPrice);
+  if (maxPrice !== null) rows = rows.filter((r) => r.price <= maxPrice);
   if (filters.sort === "price_asc") rows = [...rows].sort((a, b) => a.price - b.price);
   if (filters.sort === "price_desc") rows = [...rows].sort((a, b) => b.price - a.price);
 
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Chelena", url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/${locale}` },
+    { name: t("title"), url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/${locale}/products` },
+  ]);
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <h1 className="mb-4 font-heading text-3xl font-medium">{t("title")}</h1>
-      <ProductFilters categories={categories ?? []} locale={locale} />
+      <ProductFilters categories={categories ?? []} brands={brands} locale={locale} />
 
       {!rows.length ? (
         <p className="text-muted-foreground">{t("empty")}</p>

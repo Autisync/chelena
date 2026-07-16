@@ -26,7 +26,12 @@
     "sortDefault": "Relevance",
     "sortPriceAsc": "Price: low to high",
     "sortPriceDesc": "Price: high to low",
-    "inStockOnly": "In stock only"
+    "inStockOnly": "In stock only",
+    "searchPlaceholder": "Search products…",
+    "allBrands": "All brands",
+    "minPrice": "Min",
+    "maxPrice": "Max",
+    "apply": "Apply"
   },
   "Cart": {
     "title": "Cart",
@@ -41,7 +46,8 @@
     "addToCart": "Add to cart",
     "descriptionTitle": "Description",
     "relatedTitle": "You may also like",
-    "reviewsTitle": "Reviews"
+    "reviewsTitle": "Reviews",
+    "verifiedPurchase": "Verified purchase"
   },
   "Checkout": {
     "title": "Checkout",
