@@ -142,8 +142,25 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       **Not verified**: the admin board itself, since no `auth.users` row exists yet (see
       "Still not done" below) — the RPC's logic was reviewed carefully but not exercised
       end-to-end the way create_order/checkout were. Do this once a real admin login exists.
-- [ ] **Milestone 4 — Notifications** — schema + `create_order`'s initial `order_received` enqueue
-      exist; no dispatcher, WhatsApp/Resend senders, or webhook yet.
+- [x] **Milestone 4 — Notifications** — done and verified live. `lib/notifications/templates.ts`
+      (renders WhatsApp text + email subject/html/text per template_key, mirroring
+      docs/whatsapp-templates.md exactly), `lib/notifications/whatsapp.ts` +
+      `lib/notifications/email.ts` (both MOCK_PROVIDERS-gated — log instead of calling Meta/
+      Resend when true, which is this repo's actual `.env.local` state), `lib/notifications/
+      dispatch.ts` (retry max 3 attempts, falls back WhatsApp→email after 2 failed WhatsApp
+      attempts, per architecture doc). Wired inline (fire-and-forget, not blocking the
+      response) after both `/api/checkout` and `advanceOrderStatus` — no separate cron needed
+      for this session's testing, though a retry cron for stuck `queued` rows is still a
+      launch-checklist item. `/api/webhooks/whatsapp` (GET verification handshake, POST
+      delivery-status + STOP handling — STOP just logs for now, no opt-out list exists since
+      that's a P1 feature). Admin notification log: `app/admin/notifications/page.tsx`.
+      **Verified live**: ran a real checkout, confirmed the exact mock WhatsApp log line
+      (customer name + order number correctly interpolated) and the `notifications` row
+      transitioning to `status=sent` with a `provider_message_id`. Test order cleaned up after.
+      **Not verified**: the retry/fallback path itself (would need a forced failure — e.g.
+      temporarily breaking MOCK_PROVIDERS — not done to avoid leaving the system in an odd
+      state); the admin-transition notification path (`advance_order_status` → dispatch),
+      blocked on the same missing-admin-login issue as the order board.
 - [ ] **Milestone 5 — Reviews, Google, banners, polish** — not started.
 - [ ] **Milestone 6 — Production readiness** — not started.
 
@@ -151,20 +168,17 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
 
 1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
    manual step (needs email access), see README "Create the first admin". This unblocks
-   verifying: the admin role guard, the admin order board (`app/admin/orders/`,
-   `advance_order_status` RPC — written and pushed but not yet exercised end-to-end), and
+   verifying: the admin role guard, the admin order board + its notification dispatch, and
    auth-gated RLS paths generally. Highest-value next step now that guest-facing flows
-   (browse/cart/checkout/tracking) are fully verified.
-2. Notifications dispatcher (Milestone 4): `notifications` rows are enqueued by both
-   `create_order` and `advance_order_status` but nothing sends them yet. Need: a dispatcher
-   (route handler + retry, max 3 attempts, channel fallback per hard rule #6), WhatsApp Cloud
-   API sender, Resend email sender, both gated by `MOCK_PROVIDERS` (log instead of calling out
-   when true — this repo's `.env.local` doesn't have real WhatsApp/Resend credentials, so
-   `MOCK_PROVIDERS=true` is how this gets tested here).
-3. Settings page, banners manager, reviews moderation, dashboard widgets — all still pending
-   from Milestone 1, all low-risk CRUD following the products/pickup-points pattern.
-4. Home page needs real content: category tiles, featured products, banner slots (banners
-   table exists, no admin UI to populate it yet).
+   (browse/cart/checkout/tracking/notifications) are fully verified.
+2. Milestone 5: reviews (submission tokenized to completed orders + moderation + JSON-LD
+   aggregateRating — the PDP already renders aggregateRating from `reviews`, just needs real
+   review rows to populate it), Google Places rating widget (cached 24h in `settings`), banners
+   manager (`is_advertisable` images already exist from the image pipeline), wishlist (P1,
+   lower priority).
+3. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
+   the products/pickup-points pattern.
+4. Home page needs real content: category tiles, featured products, banner slots.
 5. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
 
 ## Test status

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkoutSchema } from "@/lib/validation/checkout";
 import { rateLimit } from "@/lib/rate-limit";
+import { dispatchQueuedNotifications } from "@/lib/notifications/dispatch";
 
 // Business logic (stock check, price snapshot, order_number/tracking_token
 // generation) lives entirely in the create_order() Postgres function (hard
@@ -48,5 +49,11 @@ export async function POST(request: Request) {
   }
 
   const order = data?.[0];
+
+  // Fire-and-forget: don't make the customer wait on WhatsApp/email delivery
+  // before seeing their confirmation page. A retry cron (not yet built —
+  // see STATUS.md) covers anything this misses.
+  dispatchQueuedNotifications().catch((err) => console.error("notification dispatch failed", err));
+
   return NextResponse.json({ order_number: order?.order_number, tracking_token: order?.tracking_token });
 }

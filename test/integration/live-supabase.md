@@ -51,6 +51,18 @@ in migration `005`. Re-ran after the fix:
   direct anon reads; only the token RPC bypasses it, matching the architecture doc's design).
 Test order and its stock delta were cleaned up afterward (service role, manual).
 
+## Notification dispatch — verified 2026-07-16
+
+Real checkout via the dev server (browser, cart from a real seeded product) → confirmed:
+- Server log showed the exact rendered mock WhatsApp text: `[MOCK WhatsApp -> +244912345678]
+  (order_received): Olá Beatriz Neto! Recebemos o seu pedido CH-2026-000004 na Chelena. ...`
+  — customer name and order number correctly interpolated from the DB, not placeholders.
+- `notifications` row for that order: `status=sent`, `attempts=1`,
+  `provider_message_id=mock-<uuid>` — confirms `dispatchQueuedNotifications()` ran inline after
+  the checkout API responded and correctly updated the row.
+Test order cleaned up afterward. Retry/fallback path (2 failed WhatsApp → switch to email) not
+exercised — would need a forced failure, not worth destabilizing the live project to test.
+
 ## Not verified (needs a signed-up user)
 
 Auth-gated paths (admin role guard, `is_admin()`, own-order `select` policy) need a real

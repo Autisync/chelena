@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { dispatchQueuedNotifications } from "@/lib/notifications/dispatch";
 
 type AdvanceArgs = {
   orderId: string;
@@ -30,4 +31,6 @@ export async function advanceOrderStatus(args: AdvanceArgs) {
 
   if (error) throw new Error(error.message);
   revalidatePath("/admin/orders");
+
+  dispatchQueuedNotifications().catch((err) => console.error("notification dispatch failed", err));
 }
