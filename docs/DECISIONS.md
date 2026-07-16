@@ -28,11 +28,13 @@ verified-purchase badge") — every review here is inherently a verified purchas
 insert path requires a completed order containing the product, see `app/api/reviews/route.ts`),
 so this was just a missing UI label, not a data-model gap.
 
-**Still-open gaps from this review** (lower priority, noted for the next iteration): the PDP
-shows only one product image, not a full multi-image gallery with thumbnails (Milestone 2 spec:
-"gallery"); no post-checkout "claim this order into a new account" prompt (P0: "Optional
-account... Post-checkout prompt to claim the order into a new account"); home page still has no
-featured-products or `home_strip` promo-banner sections. See STATUS.md for tracking.
+**Fixed in a follow-up pass**: the PDP gallery — `components/store/product-gallery.tsx`, verified
+live by adding a real second image to a seeded product and confirming the thumbnail switcher works.
+
+**Still-open gaps** (lower priority, noted for the next iteration): no post-checkout "claim this
+order into a new account" prompt (P0: "Optional account... Post-checkout prompt to claim the
+order into a new account"); home page still has no featured-products or `home_strip` promo-banner
+sections. See STATUS.md for tracking.
 
 ## No custom rate limiting on auth — Supabase Auth already does it
 

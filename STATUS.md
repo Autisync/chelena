@@ -295,9 +295,11 @@ real seeded data. See docs/DECISIONS.md for full detail on each fix and what's s
    page, and now the dashboard — every guest-facing flow is verified; the admin side (built,
    type-checked, spot-checked at the query level, but never loaded through a real browser
    session) is the one remaining unknown, and it's entirely gated on this one manual step.
-2. PDP image gallery: currently shows only one image (the primary). Milestone 2 spec calls for a
-   real gallery — thumbnails + main image switcher, using all of `product_images` sorted by
-   `sort_order`, not just the first one.
+2. ~~PDP image gallery~~ — **done**: `components/store/product-gallery.tsx` (client component,
+   main image + thumbnail strip, click-to-switch, active-thumbnail ring). Verified live: added a
+   real second image to a seeded product via the actual sharp pipeline (not a stub), confirmed
+   both thumbnails render and clicking the second one swaps the main image (screenshot-verified
+   before/after), then cleaned up the test image and its DB row.
 3. Post-checkout account claim: PRD P0 — "Optional account... Post-checkout prompt to claim the
    order into a new account." The order tracking page (`app/(store)/[locale]/orders/[token]/`)
    has no such prompt yet; the login form exists (`components/auth/login-form.tsx`) but isn't

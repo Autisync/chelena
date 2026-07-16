@@ -10,6 +10,7 @@ import { formatMoney } from "@/lib/currency";
 import { localeAlternates } from "@/lib/seo";
 import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
+import { ProductGallery } from "@/components/store/product-gallery";
 
 // PDP is per-country (price/stock) so it can't be fully static, but the
 // product content itself changes rarely — ISR keeps rebuilds cheap while
@@ -144,26 +145,7 @@ export default async function ProductDetailPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="grid grid-cols-4 gap-2 lg:grid-cols-1">
-          {images.length ? (
-            images.slice(0, 1).map((image) => (
-              <div key={image.id} className="col-span-4 aspect-square overflow-hidden rounded-xl bg-muted lg:col-span-1">
-                <Image
-                  src={productImageUrl(image.storage_path_detail)}
-                  alt={image.alt_text ?? product.name}
-                  width={1200}
-                  height={1200}
-                  priority
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ))
-          ) : (
-            <div className="col-span-4 flex aspect-square items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground lg:col-span-1">
-              Sem imagem
-            </div>
-          )}
-        </div>
+        <ProductGallery images={images} productName={product.name} />
 
         <div className="flex flex-col gap-4">
           {product.brand && <span className="text-sm text-muted-foreground">{product.brand}</span>}
