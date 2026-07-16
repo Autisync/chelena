@@ -12,9 +12,19 @@ import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
 import { ProductGallery } from "@/components/store/product-gallery";
 
-// PDP is per-country (price/stock) so it can't be fully static, but the
-// product content itself changes rarely — ISR keeps rebuilds cheap while
-// still reading the country cookie per request for pricing.
+// NOT actually ISR despite this export: this page reads the country cookie
+// via lib/supabase/server.ts's cookie-aware client, and Next.js forces any
+// route that touches cookies() fully dynamic — `revalidate` is a no-op here
+// (confirmed in `npm run build` output: this route shows `ƒ`, not `●`). Kept
+// as a documented TODO rather than silently removed: making the PDP genuinely
+// ISR would mean fetching both countries' pricing with the public client
+// (lib/supabase/public.ts) and picking the visible one client-side — the
+// same pattern already used for home-page banners/featured products
+// (components/store/featured-products.tsx) — but that also touches
+// JSON-LD/generateMetadata (which run server-side, before any client-side
+// country pick) and the add-to-cart/related-products sections, so it's a
+// real refactor of an already-tested page, not a quick fix. Scoped as a
+// follow-up rather than risked this late in the build — see STATUS.md.
 export const revalidate = 300;
 
 async function getProduct(slug: string, country: "AO" | "PT") {

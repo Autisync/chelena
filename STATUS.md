@@ -344,11 +344,25 @@ just leave this note and move on to other work.
    featured, confirmed the "Destaques" section renders it with the correct AO-country price;
    confirmed `npm run build` still shows `●` (ISR) for the home page. Left the tag on
    deliberately (legitimate demo-state improvement, not test pollution to clean up).
-5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
-   page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
-   should probably use the public client instead of `lib/supabase/server.ts`.
+5. ~~Audit other pages for the "cookie-aware client kills ISR" trap~~ — **done**: checked every
+   page using `lib/supabase/server.ts` (grep for the import). All `app/admin/**` pages
+   legitimately need it (auth-gated, no ISR benefit possible regardless). Checkout and order-
+   tracking pages are inherently non-cacheable (per-visitor form / unique token) and never
+   claimed otherwise. Found one real issue: the PDP (`products/[slug]/page.tsx`) has
+   `export const revalidate = 300` claiming ISR, but since it reads the country cookie via the
+   cookie-aware client, the route is actually fully dynamic — confirmed via `npm run build`
+   output showing `ƒ`, not `●`. This makes `revalidate` a silent no-op that's been lying about
+   caching behavior since the page was first written (Milestone 2). Making the PDP genuinely ISR
+   would mean the same both-countries-server/pick-client-side refactor as the featured-products
+   fix, but it also touches JSON-LD/generateMetadata (server-only, pre-dates any client-side
+   country pick) and related products — a real refactor of an already-tested, SEO-critical page,
+   not a quick fix. Didn't risk it this late in the build; instead replaced the misleading
+   comment with an honest one explaining exactly why it doesn't work and what the real fix looks
+   like, so the next session doesn't have to rediscover this. Rebuilt/relinted/retested clean.
 6. Remaining Milestone 6 items: admin-side e2e + RLS coverage (both gated on a real admin
    login), wishlist (P1, lower priority), a broader accessibility/empty-state polish pass.
+7. PDP ISR refactor (see #5 above) — the single highest-value remaining performance/SEO fix,
+   given the PDP is explicitly the most SEO-critical page per the architecture doc.
 
 ## Test status
 
