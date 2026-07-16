@@ -195,28 +195,36 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       with real category names, link to `?category=<uuid>` (not slug — the products page filters
       by `category_id`, this was almost a second bug caught before shipping), and the listing
       page correctly filters to just that category's products.
-      **Not yet done**: Google Places rating widget (needs `GOOGLE_PLACES_API_KEY` — not in this
-      repo's `.env.local`, so build it to degrade gracefully when absent, same as the
-      `googleReviewUrl` handling in the reviews API), wishlist (P1, lower priority), general
-      polish pass (empty/error states, accessibility).
+      Google Places rating widget done: `lib/google/places.ts` (fetches + caches in `settings`
+      under `google_places_cache`, 24h TTL, returns `null` on any failure/missing config — never
+      throws), `components/store/google-rating-widget.tsx` (server component using the admin
+      client, not the cookie-aware one, so it doesn't break the home page's ISR either — same
+      lesson as the banner/category-tiles fix). Settings page done: `app/admin/settings/` —
+      simple JSON-in-textarea editor per key (`whatsapp_numbers`, `payment_templates`,
+      `google_place_id`), zod-validated as parseable JSON before upsert.
+      **Verified**: rebuilt and confirmed the home page still shows `●` (ISR) in the build
+      output; loaded it in-browser and confirmed the rating widget renders nothing (correct —
+      no `GOOGLE_PLACES_API_KEY` in this repo's `.env.local`, degrading gracefully as designed).
+      Did NOT verify the settings page UI itself (needs admin login, same blocker as the order
+      board) — the upsert-on-primary-key pattern is the same one product/pickup-point CRUD
+      already uses successfully, so risk is low, but it's genuinely unverified.
+      **Not yet done**: wishlist (P1, lower priority), general polish pass (empty/error states,
+      accessibility), dashboard widgets, featured products + `home_strip` banner on the home page.
 - [ ] **Milestone 6 — Production readiness** — not started.
 
 ## Immediate next steps (pick up here)
 
 1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
    manual step (needs email access), see README "Create the first admin". This unblocks
-   verifying: the admin role guard, the admin order board + its notification dispatch, and
-   auth-gated RLS paths generally. Highest-value next step now that guest-facing flows
-   (browse/cart/checkout/tracking/notifications/reviews) are fully verified.
-2. Google Places rating widget — server-side fetch cached 24h in `settings` (key/value already
-   supports this), degrade gracefully with no API key (this repo has none). Low priority since
-   the PRD explicitly says this is fine to ship degraded.
-3. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
-   the products/pickup-points pattern.
-4. Home page still needs featured products + `home_strip` banner placement (hero banner and
-   category tiles are done — see above).
-5. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
-6. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
+   verifying: the admin role guard, the admin order board + its notification dispatch, the
+   settings page, and auth-gated RLS paths generally. Highest-value next step — every guest-
+   facing flow is now verified, and the admin side is the main remaining unknown.
+2. Dashboard widgets (`app/admin/page.tsx` is still a placeholder) — orders by status, revenue
+   by country, low-stock alerts, top products. Meaningful now that real orders/products exist.
+3. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
+   are done — see above).
+4. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
+5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
    page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
    should probably use the public client instead of `lib/supabase/server.ts`.
 

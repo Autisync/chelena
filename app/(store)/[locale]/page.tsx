@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { buttonVariants } from "@/components/ui/button";
 import { HomeBanner } from "@/components/store/home-banner";
+import { GoogleRatingWidget } from "@/components/store/google-rating-widget";
 
 export const revalidate = 60; // ISR — home page
 
@@ -65,6 +66,8 @@ export default async function HomePage({
           </div>
         </section>
       )}
+
+      <GoogleRatingWidget />
     </main>
   );
 }
