@@ -364,26 +364,33 @@ just leave this note and move on to other work.
 7. PDP ISR refactor (see #5 above) — the single highest-value remaining performance/SEO fix,
    given the PDP is explicitly the most SEO-critical page per the architecture doc.
 
-## Test status
+## Test status (current as of this update)
 
-`npm test` (vitest): 4/4 passing, all in `test/unit/image-pipeline.test.ts`. No Playwright
-config yet (Milestone 6 exit test needs it) — `@playwright/test` is not installed.
-Live-DB verification (manual, not automated — see `test/integration/live-supabase.md`): schema
-migrations, RLS spot-checks, and the **full guest order lifecycle** (create_order happy path +
-validation errors, checkout API route, order tracking with items, get_order_items_by_token) all
-confirmed against the real linked Supabase project, including two real bugs found and fixed
-along the way (see docs/DECISIONS.md). Admin-side RPCs (`advance_order_status`) are pushed and
-type-check but not yet exercised live — blocked on having a real admin login (see next steps).
+- `npm test` (vitest, unit, offline): 4/4 passing — `test/unit/image-pipeline.test.ts`.
+- `npm run test:integration` (vitest, hits the live DB): 7/7 passing — `test/integration/rls.test.ts`.
+- `npm run test:e2e` (Playwright, real dev server + live DB): 2/2 passing —
+  `test/e2e/guest-checkout.spec.ts`, `test/e2e/review-submission.spec.ts`. Both clean up their
+  own test data (verified via curl after each run).
+- Manual live-DB verification beyond the above (see `test/integration/live-supabase.md` for
+  exact commands/results): schema migrations, `create_order`/`get_order_by_token`/
+  `get_order_items_by_token` happy paths, notification dispatch, review moderation.
+- **Not covered by any test**: everything admin-auth-gated (order board, dashboard, settings,
+  `advance_order_status`, `claim_order`'s actual claim step) — all blocked on a real signup,
+  see "Immediate next steps" #1.
 
 ## Known follow-ups / risks
 
 - `middleware.ts` triggers a Next 16 deprecation warning (wants `proxy.ts`). Left as-is for now;
   revisit once next-intl's proxy-based middleware guidance is confirmed (see docs/DECISIONS.md).
-- No test infra set up yet for e2e (Playwright) — needed before Milestone 6 exit test.
+- PDP is not genuinely ISR despite claiming to be (see "Immediate next steps" #5/#7) — a
+  documented follow-up, not silently broken.
+- **Vercel production deployments have been failing for 7+ commits** — needs user action, see
+  the ⚠️ section near the top of this file. Not re-litigated here; check that section for status.
 - `.env.local` on this machine has real production-project credentials in it — fine for this
   session (gitignored, never leaves this environment via git), but this is a live Supabase
   project, not a disposable local one. Treat writes carefully; nothing destructive has been run
-  against it (only additive migrations + seed data so far).
+  against it (only additive migrations + seed data so far, plus test writes that are always
+  cleaned up afterward — verified via curl each time).
 
 ## Session log
 
@@ -400,3 +407,17 @@ type-check but not yet exercised live — blocked on having a real admin login (
   order lifecycle verified live in-browser, finding and fixing two real Postgres bugs
   (`create_order`'s ambiguous `tracking_token` column, missing `get_order_items_by_token`) that
   no amount of static review would have caught.
+- 2026-07-16: Milestones 4-6 completed (notifications, reviews/banners/SEO/dashboard, e2e+RLS
+  test infra), then a P0 self-review against docx/02-prd.md's checklist caught 4 real gaps
+  (missing search/price/brand filters, missing Organization/WebSite/BreadcrumbList JSON-LD,
+  missing Google review link in the `order_ready` notification) and the PDP gallery got built.
+  User discovered mid-session that Vercel is connected to this repo and every deployment since
+  the banners-manager commit had been failing (missing env vars) — flagged clearly in this file,
+  needs user action, not something fixable from this environment (see ⚠️ section above). Loop
+  was explicitly paused by the user, then resumed with "continue with loop" — picked up the
+  remaining items from the last checkpoint: post-checkout account claim (real PRD P0, previously
+  just a TODO), home page featured products + home_strip banner, and an ISR audit that caught a
+  second real bug (the PDP's `revalidate` export had been a silent no-op since Milestone 2,
+  because the cookie-aware Supabase client forces the route dynamic regardless). All verified
+  live (build output, e2e specs, or in-browser screenshots) before committing, consistent with
+  this session's practice throughout: trust nothing until it's actually run.
