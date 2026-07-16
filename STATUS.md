@@ -26,12 +26,24 @@ This resolves the single biggest recurring risk flagged throughout this build ("
 available, SQL is hand-reviewed but unverified"). The schema, RLS, and `create_order` are no
 longer theoretical — they run.
 
+**Update**: `scripts/seed-demo-products.ts` is now written and run — 8 demo products (real
+sharp-generated placeholder images run through the actual `processProductImage` pipeline, not
+raw SQL, per hard rule #5) with AO+PT pricing, seeded successfully (confirmed via count query:
+8 products, 16 product_country rows, 8 product_images rows). **Verified visually in-browser**:
+the listing page, PDP, add-to-cart, and cart page all render correctly with real data and real
+images — screenshots confirmed pricing, stock badges, related products, cart math, and the
+header badge count all work end to end. `npm run seed:demo` added to package.json; README
+updated with both the Docker-local and linked-project seeding paths.
+
+**Update 2**: tested the `create_order` happy path against a real seeded product — found and
+fixed a genuine bug (`tracking_token` ambiguous column reference, migration 005, see
+docs/DECISIONS.md). Full order lifecycle now verified end to end: stock decrement, order_items
+snapshot, order_status_history, notifications enqueue, and guest tracking via token all confirmed
+working (see test/integration/live-supabase.md for exact results). Test order cleaned up after.
+
 **Still not done**: no `auth.users` row exists yet (didn't fabricate one via direct SQL — see
-docs/DECISIONS.md; needs a real signup with email access, a manual step), so no admin user, no
-demo products (needs the not-yet-written `scripts/seed-demo-products.ts` to go through the real
-image pipeline per hard rule #5), and the `create_order` happy path (vs. just its validation
-errors) is unverified. `docs/LAUNCH-CHECKLIST.md` should be updated to reflect that the *schema*
-prerequisite is now done — only the business-data prerequisites remain.
+docs/DECISIONS.md; needs a real signup with email access, a manual step), so no admin user and
+auth-gated paths (admin role guard, own-order reads) remain unverified.
 
 ## Milestone progress (see docx/04-implementation-plan.md for full scope of each)
 

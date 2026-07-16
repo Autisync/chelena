@@ -33,12 +33,23 @@ Copy `.env.example` to `.env.local` and fill in what you have. Everything works 
 
 ```bash
 npm install
-supabase start                # local Postgres/Auth/Storage via Docker
+supabase start                 # local Postgres/Auth/Storage via Docker
 supabase db push               # apply supabase/migrations/*.sql
-supabase db seed -f supabase/seed.sql
+supabase db seed -f supabase/seed.sql   # categories, pickup points, settings placeholders
 supabase gen types typescript --local > lib/supabase/types.ts
 cp .env.example .env.local     # fill in the local Supabase URL/keys `supabase start` prints
+npm run seed:demo              # 8 demo products with real processed placeholder images
 npm run dev
+```
+
+No Docker? Link to a real (dev) Supabase project instead of running one locally:
+
+```bash
+supabase link --project-ref <ref>
+supabase db push                        # applies against the linked project
+supabase db query --linked --file supabase/seed.sql
+supabase gen types typescript --linked > lib/supabase/types.ts
+npm run seed:demo                       # reads NEXT_PUBLIC_SUPABASE_URL/SERVICE_ROLE_KEY from .env.local
 ```
 
 ## Create the first admin

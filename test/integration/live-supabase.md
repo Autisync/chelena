@@ -35,10 +35,21 @@ curl ... -d '{..., "p_items":[{"product_id":"00000000-0000-0000-0000-00000000000
 # -> {"code":"22023","message":"product ... is not available in PT"}
 ```
 Confirmed both reject correctly with the expected Postgres error code (22023) and message.
-**Not yet verified**: the happy path (valid product + stock decrement + order_items snapshot +
-order_status_history + notifications row) — needs at least one seeded product with
-`product_country` visible in a given country, which requires the image pipeline's demo-product
-seed script (`scripts/seed-demo-products.ts`, not yet written — see STATUS.md).
+
+**Happy path — verified 2026-07-16** (after seeding 8 demo products via `npm run seed:demo`):
+a real order against a real product (`batom-mate-terracota`, qty 2) via the anon key initially
+failed with a genuine bug (42702 "tracking_token is ambiguous" — see docs/DECISIONS.md), fixed
+in migration `005`. Re-ran after the fix:
+- `create_order` returned `{order_id, order_number: "CH-2026-000002", tracking_token}`.
+- `product_country.stock` decremented 25 → 23 (qty 2 ordered).
+- `order_items` (service-role read) had the correct snapshot: name, unit_price, quantity.
+- `order_status_history` had one row: `pending_review`, note "order created via create_order()".
+- `notifications` had one queued `order_received` row with the right `order_number` payload.
+- `get_order_by_token` (anon key) returned the full order — guest tracking path works.
+- Confirmed anon **cannot** read `order_items`/`orders` directly without the token (RLS working
+  as intended — guest orders have `user_id = null`, so the own-row policy correctly excludes
+  direct anon reads; only the token RPC bypasses it, matching the architecture doc's design).
+Test order and its stock delta were cleaned up afterward (service role, manual).
 
 ## Not verified (needs a signed-up user)
 

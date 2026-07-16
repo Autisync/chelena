@@ -2,6 +2,23 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## Bug found live: ambiguous `tracking_token` column in `create_order`
+
+Testing the `create_order` happy path against the real linked database (not just its validation
+errors, which had been checked earlier and passed) surfaced a genuine bug: `returning id,
+tracking_token into v_order_id, v_tracking_token` failed with Postgres error 42702 ("column
+reference tracking_token is ambiguous"). Cause: `create_order`'s `returns table (order_id uuid,
+order_number text, tracking_token uuid)` signature implicitly declares `tracking_token` as a
+PL/pgSQL variable in scope, which collides with the `orders.tracking_token` column referenced in
+the same `RETURNING` clause. Fixed by qualifying the columns (`orders.id, orders.tracking_token`)
+in a new migration (`005_fix_create_order_ambiguous_column.sql`) rather than editing the
+already-applied `003` — migrations are append-only once applied to a real environment, even one
+this early. Re-verified the full happy path afterward (order created, stock decremented,
+`order_items` snapshotted correctly, `order_status_history` + `notifications` rows written,
+guest tracking via `get_order_by_token` returns the order) — see
+`test/integration/live-supabase.md`. This is exactly the class of bug that a type stub
+(`Database = any`) and pure code review cannot catch — only running the SQL for real does.
+
 ## Secrets hygiene: real Supabase credentials moved out of `.env.example`
 
 Mid-session, real credentials for a live Supabase project appeared written into `.env.example`
