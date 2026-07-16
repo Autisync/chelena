@@ -116,10 +116,32 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       **Not yet done**: category tiles, featured/promo sections on the home page (home is still
       just the hero), SEO plumbing beyond per-page metadata (sitemap.xml, robots.txt, OG images,
       hreflang alternates — see docs/architecture "SEO plan"), brand/price-range filters.
-- [ ] **Milestone 3 — Checkout & orders** — `create_order`/`get_order_by_token` RPCs exist
-      (migration 003) and are now **verified against a real database** (see above) but no
-      checkout form, confirmation/tracking pages, or admin pipeline board yet.
-      `advance_order_status` RPC (admin transitions) not written yet.
+- [x] **Milestone 3 — Checkout & orders** — done and verified end to end against the live DB.
+      Checkout: `app/(store)/[locale]/checkout/page.tsx` + `components/store/checkout-form.tsx`
+      (name/phone/email/channel/pickup-point/notes, honeypot field) posts to
+      `app/api/checkout/route.ts` (zod validation, in-memory rate limit —
+      `lib/rate-limit.ts`, 10 req/min/IP, dev-safe fallback for Upstash — calls `create_order`
+      via the session-scoped server client, never trusting client-supplied prices).
+      Order tracking: `app/(store)/[locale]/orders/[token]/page.tsx` (status timeline, pickup
+      date, payment instructions, line items) + `app/(store)/[locale]/orders/track/page.tsx`
+      (token entry form, linked from the header).
+      **Full golden path verified live in-browser**: seeded product → PDP → add to cart →
+      checkout form → order created (CH-2026-000003) → redirected to tracking page → correct
+      status/items/subtotal displayed. Found and fixed a second real bug in the process:
+      `order_items` had no RLS path for a guest to read their own line items even with a valid
+      token (same class of gap as the `create_order` bug) — added
+      `get_order_items_by_token()` (migration 006), mirroring `get_order_by_token`'s
+      SECURITY DEFINER + token-as-authorization pattern. Re-verified after the fix: order items
+      render correctly on the tracking page.
+      Admin pipeline board: `app/admin/orders/page.tsx` — columns per status (button
+      transitions, not drag-and-drop — PRD allows either), `advance_order_status` RPC
+      (migration 007, admin-only via `is_admin()`, enforces "verifying requires pickup_date +
+      payment_instructions", enqueues a notification for statuses with an approved template).
+      Found and fixed a genuine SQL syntax bug while writing this migration (`UPDATE ... ORDER
+      BY ... LIMIT` isn't valid Postgres — needs a subquery) before it ever reached the DB.
+      **Not verified**: the admin board itself, since no `auth.users` row exists yet (see
+      "Still not done" below) — the RPC's logic was reviewed carefully but not exercised
+      end-to-end the way create_order/checkout were. Do this once a real admin login exists.
 - [ ] **Milestone 4 — Notifications** — schema + `create_order`'s initial `order_received` enqueue
       exist; no dispatcher, WhatsApp/Resend senders, or webhook yet.
 - [ ] **Milestone 5 — Reviews, Google, banners, polish** — not started.
@@ -127,37 +149,34 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
 
 ## Immediate next steps (pick up here)
 
-1. Checkout flow (Milestone 3): `app/(store)/[locale]/checkout/page.tsx` — form (name, phone
-   w/ intl input using `libphonenumber-js` which is already installed, optional email, channel
-   choice, pickup point select scoped to cart's country, notes) → calls `create_order` RPC
-   (now verified working, see above) with the cart's items → on success, clear the cart and
-   redirect to `/[locale]/orders/[token]` (confirmation + tracking page using
-   `get_order_by_token`).
-2. Admin order pipeline board (`app/admin/orders/`) — columns per status, verify modal (pickup
-   date + payment instructions), an `advance_order_status` RPC (new migration 005) mirroring
-   `create_order`'s pattern (SECURITY DEFINER, validates the transition, writes
-   `order_status_history`, enqueues a `notifications` row).
-3. Demo product seed: `scripts/seed-demo-products.ts` — needs to run the image pipeline
-   (`lib/images/process.ts`) against real placeholder images and insert via the admin client,
-   not raw SQL (hard rule #5). Blocks visually verifying the storefront listing/PDP with real
-   data — worth doing soon now that the DB is live.
-4. Settings page, banners manager, reviews moderation, dashboard widgets — all still pending
+1. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
+   manual step (needs email access), see README "Create the first admin". This unblocks
+   verifying: the admin role guard, the admin order board (`app/admin/orders/`,
+   `advance_order_status` RPC — written and pushed but not yet exercised end-to-end), and
+   auth-gated RLS paths generally. Highest-value next step now that guest-facing flows
+   (browse/cart/checkout/tracking) are fully verified.
+2. Notifications dispatcher (Milestone 4): `notifications` rows are enqueued by both
+   `create_order` and `advance_order_status` but nothing sends them yet. Need: a dispatcher
+   (route handler + retry, max 3 attempts, channel fallback per hard rule #6), WhatsApp Cloud
+   API sender, Resend email sender, both gated by `MOCK_PROVIDERS` (log instead of calling out
+   when true — this repo's `.env.local` doesn't have real WhatsApp/Resend credentials, so
+   `MOCK_PROVIDERS=true` is how this gets tested here).
+3. Settings page, banners manager, reviews moderation, dashboard widgets — all still pending
    from Milestone 1, all low-risk CRUD following the products/pickup-points pattern.
-5. Home page needs real content: category tiles, featured products, banner slots (banners
+4. Home page needs real content: category tiles, featured products, banner slots (banners
    table exists, no admin UI to populate it yet).
-6. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
-7. First real signup + admin promotion (`update profiles set role='admin' where id=...`) — a
-   manual step (needs email access), see README "Create the first admin". Do this to unblock
-   verifying the admin role guard and auth-gated RLS paths end to end.
+5. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
 
 ## Test status
 
 `npm test` (vitest): 4/4 passing, all in `test/unit/image-pipeline.test.ts`. No Playwright
 config yet (Milestone 6 exit test needs it) — `@playwright/test` is not installed.
 Live-DB verification (manual, not automated — see `test/integration/live-supabase.md`): schema
-migrations, RLS spot-checks, and `create_order`'s validation errors all confirmed against the
-real linked Supabase project. `create_order`'s happy path is not yet verified (needs seeded
-products — see next steps above).
+migrations, RLS spot-checks, and the **full guest order lifecycle** (create_order happy path +
+validation errors, checkout API route, order tracking with items, get_order_items_by_token) all
+confirmed against the real linked Supabase project, including two real bugs found and fixed
+along the way (see docs/DECISIONS.md). Admin-side RPCs (`advance_order_status`) are pushed and
+type-check but not yet exercised live — blocked on having a real admin login (see next steps).
 
 ## Known follow-ups / risks
 
@@ -180,4 +199,7 @@ products — see next steps above).
   had been noted every iteration (see "MAJOR UPDATE" above). Resume cadence: user asked for a
   roughly 3-hour gap; `ScheduleWakeup` caps a single call at 1 hour, so the loop re-arms hourly
   and uses each wake to keep building (judged more useful than idling) rather than literally
-  waiting 3 hours.
+  waiting 3 hours. Milestone 3 (checkout + admin order board) completed and the full guest
+  order lifecycle verified live in-browser, finding and fixing two real Postgres bugs
+  (`create_order`'s ambiguous `tracking_token` column, missing `get_order_items_by_token`) that
+  no amount of static review would have caught.

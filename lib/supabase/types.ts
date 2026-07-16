@@ -657,6 +657,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_order_status: {
+        Args: {
+          p_cancelled_reason?: string
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_note?: string
+          p_order_id: string
+          p_payment_instructions?: string
+          p_payment_method?: string
+          p_payment_reference?: string
+          p_pickup_date?: string
+        }
+        Returns: undefined
+      }
       create_order: {
         Args: {
           p_country: Database["public"]["Enums"]["country_code"]
@@ -704,6 +717,23 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_order_items_by_token: {
+        Args: { p_tracking_token: string }
+        Returns: {
+          id: string
+          order_id: string | null
+          product_id: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "order_items"
           isOneToOne: false
           isSetofReturn: true
         }

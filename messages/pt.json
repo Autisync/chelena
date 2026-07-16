@@ -42,5 +42,38 @@
     "descriptionTitle": "Descrição",
     "relatedTitle": "Também pode gostar",
     "reviewsTitle": "Avaliações"
+  },
+  "Checkout": {
+    "title": "Finalizar compra",
+    "emptyCart": "O seu carrinho está vazio.",
+    "name": "Nome completo",
+    "phone": "Telefone (com indicativo)",
+    "emailOptional": "Email (opcional)",
+    "channel": "Como prefere ser contactado?",
+    "pickupPoint": "Ponto de levantamento",
+    "notesOptional": "Notas (opcional)",
+    "summary": "Resumo",
+    "subtotal": "Subtotal",
+    "submit": "Confirmar encomenda",
+    "submitting": "A enviar…",
+    "genericError": "Não foi possível concluir a encomenda. Tente novamente."
+  },
+  "Tracking": {
+    "title": "Acompanhar encomenda",
+    "trackHint": "Introduza o código de acompanhamento que recebeu na confirmação.",
+    "tokenPlaceholder": "Código de acompanhamento",
+    "trackButton": "Acompanhar",
+    "cancelled": "Esta encomenda foi cancelada",
+    "pickupDate": "Data de levantamento",
+    "subtotal": "Subtotal",
+    "status": {
+      "pending_review": "Pedido recebido",
+      "verified": "Confirmado",
+      "awaiting_payment": "Aguarda pagamento",
+      "paid": "Pagamento confirmado",
+      "preparing": "Em preparação",
+      "ready_for_pickup": "Pronto para levantamento",
+      "completed": "Concluído"
+    }
   }
 }

@@ -42,5 +42,38 @@
     "descriptionTitle": "Description",
     "relatedTitle": "You may also like",
     "reviewsTitle": "Reviews"
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "emptyCart": "Your cart is empty.",
+    "name": "Full name",
+    "phone": "Phone (with country code)",
+    "emailOptional": "Email (optional)",
+    "channel": "How should we contact you?",
+    "pickupPoint": "Pickup point",
+    "notesOptional": "Notes (optional)",
+    "summary": "Summary",
+    "subtotal": "Subtotal",
+    "submit": "Confirm order",
+    "submitting": "Sending…",
+    "genericError": "Could not complete the order. Please try again."
+  },
+  "Tracking": {
+    "title": "Track order",
+    "trackHint": "Enter the tracking code from your order confirmation.",
+    "tokenPlaceholder": "Tracking code",
+    "trackButton": "Track",
+    "cancelled": "This order was cancelled",
+    "pickupDate": "Pickup date",
+    "subtotal": "Subtotal",
+    "status": {
+      "pending_review": "Order received",
+      "verified": "Verified",
+      "awaiting_payment": "Awaiting payment",
+      "paid": "Payment confirmed",
+      "preparing": "Preparing",
+      "ready_for_pickup": "Ready for pickup",
+      "completed": "Completed"
+    }
   }
 }
