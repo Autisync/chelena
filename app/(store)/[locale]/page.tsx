@@ -1,11 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { buttonVariants } from "@/components/ui/button";
 import { HomeBanner } from "@/components/store/home-banner";
 import { GoogleRatingWidget } from "@/components/store/google-rating-widget";
+import { localeAlternates } from "@/lib/seo";
 
 export const revalidate = 60; // ISR — home page
+
+export const metadata: Metadata = {
+  alternates: localeAlternates(""),
+};
 
 export default async function HomePage({
   params,

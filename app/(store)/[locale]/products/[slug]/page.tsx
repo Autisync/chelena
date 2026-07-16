@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { COUNTRY_COOKIE, isCountry } from "@/lib/country";
 import { productImageUrl } from "@/lib/images/url";
 import { formatMoney } from "@/lib/currency";
+import { localeAlternates } from "@/lib/seo";
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
 
 // PDP is per-country (price/stock) so it can't be fully static, but the
@@ -40,9 +41,19 @@ export async function generateMetadata({
   const product = await getProduct(slug, country);
   if (!product) return {};
 
+  const primaryImage = [...(product.product_images ?? [])].sort(
+    (a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0)
+  )[0];
+  const title = product.seo_title || product.name;
+  const description = product.seo_description || product.description_pt || undefined;
+
   return {
-    title: product.seo_title || product.name,
-    description: product.seo_description || product.description_pt || undefined,
+    title,
+    description,
+    alternates: localeAlternates(`/products/${slug}`),
+    openGraph: primaryImage
+      ? { title, description, images: [productImageUrl(primaryImage.storage_path_detail)] }
+      : undefined,
   };
 }
 

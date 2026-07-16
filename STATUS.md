@@ -208,6 +208,18 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       Did NOT verify the settings page UI itself (needs admin login, same blocker as the order
       board) — the upsert-on-primary-key pattern is the same one product/pickup-point CRUD
       already uses successfully, so risk is low, but it's genuinely unverified.
+      SEO plumbing done: `app/sitemap.ts` (products + categories + locale variants, using the
+      public client so it stays statically generated — confirmed `○` in build output),
+      `app/robots.ts` (disallows `/admin` and `/api`), `lib/seo.ts` (shared `localeAlternates()`
+      helper for hreflang, wired into the home page, listing page, and PDP), OG image on the PDP
+      (uses the real primary product image's detail variant). hreflang is locale-only (pt/en),
+      not country-scoped (pt-PT/pt-AO) as the architecture doc's SEO plan describes — documented
+      in docs/DECISIONS.md why (would need country in the URL path, a bigger restructure than
+      fits this late in the build). Also documented: category filter links use the category
+      UUID, not a prettier slug — same reasoning, a real refactor not a quick fix.
+      **Verified live**: loaded `/sitemap.xml` and `/robots.txt` in-browser — sitemap shows all
+      8 real products with real `lastmod` timestamps and correct locale/category URL variants;
+      robots.txt correctly disallows admin/api and points at the sitemap.
       **Not yet done**: wishlist (P1, lower priority), general polish pass (empty/error states,
       accessibility), dashboard widgets, featured products + `home_strip` banner on the home page.
 - [ ] **Milestone 6 — Production readiness** — not started.
@@ -223,10 +235,12 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
    by country, low-stock alerts, top products. Meaningful now that real orders/products exist.
 3. Home page: featured products + `home_strip` banner placement (hero banner and category tiles
    are done — see above).
-4. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
-5. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
+4. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
    page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
    should probably use the public client instead of `lib/supabase/server.ts`.
+5. Milestone 6 (production readiness): rate limiting is in-memory-only (needs Upstash before
+   real launch, already flagged), Playwright e2e tests not set up, RLS test suite not written,
+   analytics not wired. This is most of what's left before "launch-ready" per the plan.
 
 ## Test status
 

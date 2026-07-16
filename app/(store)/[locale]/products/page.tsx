@@ -1,9 +1,15 @@
 import { cookies } from "next/headers";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { COUNTRY_COOKIE, isCountry } from "@/lib/country";
 import { ProductCard } from "@/components/store/product-card";
 import { ProductFilters } from "@/components/store/product-filters";
+import { localeAlternates } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  alternates: localeAlternates("/products"),
+};
 
 // This page reads the country cookie server-side (unlike the home page) —
 // results are inherently per-country, so there's nothing to gain from ISR

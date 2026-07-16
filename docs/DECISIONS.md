@@ -2,6 +2,27 @@
 
 Deviations from the spec docs, and resolutions to ambiguous requirements, with reasons. Newest first.
 
+## hreflang: locale-only (pt/en), not country-scoped (pt-PT/pt-AO)
+
+The architecture doc's SEO plan calls for hreflang `pt-PT`, `pt-AO`, and `en`, implying country
+needs to be part of the URL (it suggests "serve default country by domain path /pt and /ao
+sections"). This build's actual routing is locale-only (`/pt`, `/en` — see `i18n/routing.ts`,
+decided in Milestone 0) with country carried in a cookie, not the URL path. Retrofitting
+country-scoped URLs at this point (Milestone 5) would mean restructuring every route under
+`app/(store)/[locale]/` to `app/(store)/[locale]/[country]/` — a large, late change with wide
+blast radius, versus `lib/seo.ts`'s current locale-only `pt`/`en` alternates which are still
+correct (just not as granular as the ideal). Documented rather than silently shipped: if country-
+specific SEO indexing becomes a real priority post-launch, this is the place to revisit it.
+
+## Category filter links use category UUID, not slug
+
+`app/(store)/[locale]/products/page.tsx` filters by `category_id` (uuid), so
+`components/store/product-filters.tsx`, the home page's category tiles, and `app/sitemap.ts` all
+link with `?category=<uuid>` rather than a prettier `?category=<slug>`. Slug-based would be
+better SEO practice and was considered while building the sitemap, but switching now touches the
+filter dropdown, the home page links, and the sitemap together — a real refactor, not a quick
+fix, this late in the build. Left as a follow-up (see STATUS.md) rather than rushed.
+
 ## Bug found live: ambiguous `tracking_token` column in `create_order`
 
 Testing the `create_order` happy path against the real linked database (not just its validation
