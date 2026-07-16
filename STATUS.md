@@ -179,11 +179,26 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
       (`is_approved: false` correctly), confirmed a duplicate submit correctly 409s, approved it
       (simulating admin), and confirmed it renders on the PDP with the right star count and the
       JSON-LD `aggregateRating` picks it up. Test data cleaned up after.
+      Banners manager done: `app/admin/banners/` (CRUD, image picker scoped to
+      `is_advertisable=true` product_images, placement/country/schedule fields) + rendering on
+      the home page (`components/store/home-banner.tsx`, a client island like CountrySwitcher —
+      picks the country-matching banner client-side so ISR isn't forced dynamic). Category tiles
+      also added to the home page, using a new `lib/supabase/public.ts` stateless client.
+      **Found and fixed a real regression while doing this**: querying via the cookie-aware
+      server client (`lib/supabase/server.ts`) on the home page silently flipped it from `●`
+      (ISR) to `ƒ` (fully dynamic) in the build output, even though nothing read the country
+      cookie — `createClient()` touches `cookies()` internally for Supabase's own auth-session
+      handling, which is enough to opt out static rendering regardless of the actual query.
+      Fixed by adding `lib/supabase/public.ts` (plain `@supabase/supabase-js` client, no cookies)
+      for anon-readable public data on pages that need to stay static — verified the build
+      output shows `●` again after the fix. **Verified live in-browser**: category tiles render
+      with real category names, link to `?category=<uuid>` (not slug — the products page filters
+      by `category_id`, this was almost a second bug caught before shipping), and the listing
+      page correctly filters to just that category's products.
       **Not yet done**: Google Places rating widget (needs `GOOGLE_PLACES_API_KEY` — not in this
       repo's `.env.local`, so build it to degrade gracefully when absent, same as the
-      `googleReviewUrl` handling in the reviews API), banners manager (admin CRUD is straightforward
-      but not written), wishlist (P1, lower priority), general polish pass (empty/error states,
-      accessibility).
+      `googleReviewUrl` handling in the reviews API), wishlist (P1, lower priority), general
+      polish pass (empty/error states, accessibility).
 - [ ] **Milestone 6 — Production readiness** — not started.
 
 ## Immediate next steps (pick up here)
@@ -193,16 +208,17 @@ auth-gated paths (admin role guard, own-order reads) remain unverified.
    verifying: the admin role guard, the admin order board + its notification dispatch, and
    auth-gated RLS paths generally. Highest-value next step now that guest-facing flows
    (browse/cart/checkout/tracking/notifications/reviews) are fully verified.
-2. Banners manager (`app/admin/banners/`) — CRUD per PRD (image must be `is_advertisable`,
-   placement `home_hero|home_strip|category_top`, country nullable, schedule); render in home
-   page placements once built.
-3. Google Places rating widget — server-side fetch cached 24h in `settings` (key/value already
+2. Google Places rating widget — server-side fetch cached 24h in `settings` (key/value already
    supports this), degrade gracefully with no API key (this repo has none). Low priority since
    the PRD explicitly says this is fine to ship degraded.
-4. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
+3. Settings page, dashboard widgets — still pending from Milestone 1, low-risk CRUD following
    the products/pickup-points pattern.
-4. Home page needs real content: category tiles, featured products, banner slots.
+4. Home page still needs featured products + `home_strip` banner placement (hero banner and
+   category tiles are done — see above).
 5. SEO plumbing: sitemap.xml, robots.txt, OG images, hreflang alternates.
+6. Audit other pages for the same "cookie-aware client kills ISR" trap just fixed on the home
+   page (see `lib/supabase/public.ts`) — anywhere that queries public, country-independent data
+   should probably use the public client instead of `lib/supabase/server.ts`.
 
 ## Test status
 
